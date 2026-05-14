@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Folder silhouette placeholder, sized to fit the 66dp adaptive-icon safe zone -->
+    <group
+        android:translateX="27"
+        android:translateY="27">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M6,12 L24,12 L30,18 L48,18 C50.2,18 52,19.8 52,22 L52,46 C52,48.2 50.2,50 48,50 L6,50 C3.8,50 2,48.2 2,46 L2,16 C2,13.8 3.8,12 6,12 Z" />
+        <path
+            android:fillColor="#1976D2"
+            android:pathData="M6,16 L24,16 L30,22 L48,22 L48,28 L6,28 Z" />
+    </group>
+</vector>
