@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 
+import com.zfile.manager.R;
 import com.zfile.manager.core.MimeTypeHelper;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public final class IntentHelper {
         try {
             context.startActivity(Intent.createChooser(intent, file.getName()));
         } catch (ActivityNotFoundException e) {
-            Toast.makeText(context, "No app can open this file", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.error_no_app_for_file, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -47,7 +48,8 @@ public final class IntentHelper {
                 .setType(mime)
                 .putExtra(Intent.EXTRA_STREAM, uri)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(Intent.createChooser(intent, "Share " + file.getName()));
+        context.startActivity(Intent.createChooser(intent,
+                context.getString(R.string.share_chooser_title, file.getName())));
     }
 
     @NonNull

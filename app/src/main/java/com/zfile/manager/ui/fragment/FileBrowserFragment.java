@@ -189,6 +189,7 @@ public class FileBrowserFragment extends Fragment {
         } else {
             emptyGroup.setVisibility(View.GONE);
         }
+        fab.show();
     }
 
     private void showPermissionEmptyState() {
@@ -198,6 +199,7 @@ public class FileBrowserFragment extends Fragment {
         ((android.widget.TextView) emptyGroup.findViewById(R.id.emptyMessage))
                 .setText(R.string.permission_explanation);
         grantAccessButton.setVisibility(View.VISIBLE);
+        fab.hide();
     }
 
     private void bindTransferProgress(@Nullable TransferProgress p) {
@@ -220,6 +222,7 @@ public class FileBrowserFragment extends Fragment {
                 if (getView() != null) {
                     Snackbar.make(getView(), R.string.transfer_completed, Snackbar.LENGTH_SHORT).show();
                 }
+                viewModel.clearTransferProgress();
                 break;
             case FAILED:
                 progressIndicator.setVisibility(View.GONE);
@@ -229,12 +232,14 @@ public class FileBrowserFragment extends Fragment {
                                     p.getErrorMessage() != null ? p.getErrorMessage() : "?"),
                             Snackbar.LENGTH_LONG).show();
                 }
+                viewModel.clearTransferProgress();
                 break;
             case CANCELLED:
                 progressIndicator.setVisibility(View.GONE);
                 if (getView() != null) {
                     Snackbar.make(getView(), R.string.transfer_cancelled, Snackbar.LENGTH_SHORT).show();
                 }
+                viewModel.clearTransferProgress();
                 break;
         }
     }

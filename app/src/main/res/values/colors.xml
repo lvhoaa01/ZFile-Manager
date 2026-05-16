@@ -35,4 +35,15 @@
     <color name="md_theme_dark_onBackground">#E2E2E5</color>
     <color name="md_theme_dark_error">#FFB4AB</color>
     <color name="md_theme_dark_onError">#690005</color>
+
+    <!-- Category tints applied via ColorDecorator (see FileRepository.tintFor). -->
+    <color name="category_folder">#FFC107</color>
+    <color name="category_image">#4CAF50</color>
+    <color name="category_video">#F44336</color>
+    <color name="category_audio">#9C27B0</color>
+    <color name="category_document">#2196F3</color>
+    <color name="category_archive">#795548</color>
+    <color name="category_apk">#3DDC84</color>
+    <color name="category_text">#607D8B</color>
+    <color name="category_unknown">#9E9E9E</color>
 </resources>

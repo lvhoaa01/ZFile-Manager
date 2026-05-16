@@ -1,11 +1,12 @@
 package com.zfile.manager.repository;
 
 import android.content.Context;
-import android.graphics.Color;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
+import com.zfile.manager.R;
 import com.zfile.manager.core.FileSystemManager;
 import com.zfile.manager.core.MimeTypeHelper;
 import com.zfile.manager.model.FileItem;
@@ -125,7 +126,7 @@ public final class FileRepository {
             if (iconRes != 0) {
                 comp = new IconDecorator(comp, iconRes);
             }
-            comp = new ColorDecorator(comp, tintFor(item.getFileType()));
+            comp = new ColorDecorator(comp, tintFor(ctx, item.getFileType()));
             if (item.isHidden()) {
                 comp = new SystemTagDecorator(comp, "HIDDEN");
             }
@@ -134,18 +135,20 @@ public final class FileRepository {
         return out;
     }
 
-    private static int tintFor(@NonNull FileType type) {
+    private static int tintFor(@NonNull Context ctx, @NonNull FileType type) {
+        int colorRes;
         switch (type) {
-            case FOLDER:   return Color.parseColor("#FFC107");
-            case IMAGE:    return Color.parseColor("#4CAF50");
-            case VIDEO:    return Color.parseColor("#F44336");
-            case AUDIO:    return Color.parseColor("#9C27B0");
-            case DOCUMENT: return Color.parseColor("#2196F3");
-            case ARCHIVE:  return Color.parseColor("#795548");
-            case APK:      return Color.parseColor("#3DDC84");
-            case TEXT:     return Color.parseColor("#607D8B");
+            case FOLDER:   colorRes = R.color.category_folder; break;
+            case IMAGE:    colorRes = R.color.category_image; break;
+            case VIDEO:    colorRes = R.color.category_video; break;
+            case AUDIO:    colorRes = R.color.category_audio; break;
+            case DOCUMENT: colorRes = R.color.category_document; break;
+            case ARCHIVE:  colorRes = R.color.category_archive; break;
+            case APK:      colorRes = R.color.category_apk; break;
+            case TEXT:     colorRes = R.color.category_text; break;
             case UNKNOWN:
-            default:       return Color.parseColor("#9E9E9E");
+            default:       colorRes = R.color.category_unknown; break;
         }
+        return ContextCompat.getColor(ctx, colorRes);
     }
 }

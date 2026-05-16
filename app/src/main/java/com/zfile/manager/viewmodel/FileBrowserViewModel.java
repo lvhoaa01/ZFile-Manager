@@ -4,8 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 import androidx.lifecycle.ViewModel;
 
+import com.zfile.manager.R;
 import com.zfile.manager.core.FileSystemManager;
 import com.zfile.manager.core.ThreadPoolManager;
 import com.zfile.manager.model.SortCriteria;
@@ -36,30 +38,32 @@ public class FileBrowserViewModel extends ViewModel {
 
     private final MutableLiveData<List<FileItemComponent>> _fileList = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<String> _currentPath = new MutableLiveData<>();
-    private final MutableLiveData<List<String>> _pathSegments = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<TransferProgress> _transferProgress = new MutableLiveData<>();
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Set<String>> _selectedPaths = new MutableLiveData<>(Collections.emptySet());
 
+    /** Derived from {@link #_currentPath} so the two never drift out of sync. */
+    @NonNull private final LiveData<List<String>> pathSegments =
+            Transformations.map(_currentPath, FileBrowserViewModel::toSegments);
+
     @NonNull private final AtomicBoolean cancelFlag = new AtomicBoolean(false);
 
     @NonNull public LiveData<List<FileItemComponent>> getFileList() { return _fileList; }
     @NonNull public LiveData<String> getCurrentPath() { return _currentPath; }
-    @NonNull public LiveData<List<String>> getPathSegments() { return _pathSegments; }
+    @NonNull public LiveData<List<String>> getPathSegments() { return pathSegments; }
     @NonNull public LiveData<Boolean> getIsLoading() { return _isLoading; }
     @NonNull public LiveData<TransferProgress> getTransferProgress() { return _transferProgress; }
     @NonNull public LiveData<String> getErrorMessage() { return _errorMessage; }
     @NonNull public LiveData<Set<String>> getSelectedPaths() { return _selectedPaths; }
 
     public void loadDirectory(@NonNull String path) {
-        _isLoading.setValue(true);
+        _isLoading.postValue(true);
         ThreadPoolManager.getInstance().execute(() -> {
             try {
                 List<FileItemComponent> items = repository.loadDirectory(path);
                 _fileList.postValue(items);
                 _currentPath.postValue(path);
-                _pathSegments.postValue(toSegments(path));
                 _selectedPaths.postValue(Collections.emptySet());
             } catch (Exception e) {
                 _errorMessage.postValue(safeMessage(e));
@@ -152,7 +156,7 @@ public class FileBrowserViewModel extends ViewModel {
             for (String p : toDelete) {
                 if (!repository.delete(p)) allOk = false;
             }
-            if (!allOk) _errorMessage.postValue("Some files could not be deleted");
+            if (!allOk) _errorMessage.postValue(stringRes(R.string.error_delete_failed));
             refresh();
             _selectedPaths.postValue(Collections.emptySet());
         });
@@ -161,7 +165,7 @@ public class FileBrowserViewModel extends ViewModel {
     public void rename(@NonNull String path, @NonNull String newName) {
         ThreadPoolManager.getInstance().execute(() -> {
             if (!repository.rename(path, newName)) {
-                _errorMessage.postValue("Rename failed");
+                _errorMessage.postValue(stringRes(R.string.error_rename_failed));
             }
             refresh();
         });
@@ -172,7 +176,7 @@ public class FileBrowserViewModel extends ViewModel {
         if (cur == null) return;
         ThreadPoolManager.getInstance().execute(() -> {
             if (!repository.createFolder(cur, name)) {
-                _errorMessage.postValue("Could not create folder");
+                _errorMessage.postValue(stringRes(R.string.error_create_failed));
             }
             refresh();
         });
@@ -184,7 +188,7 @@ public class FileBrowserViewModel extends ViewModel {
         ThreadPoolManager.getInstance().execute(() -> {
             try {
                 if (!repository.createFile(cur, name)) {
-                    _errorMessage.postValue("Could not create file");
+                    _errorMessage.postValue(stringRes(R.string.error_create_failed));
                 }
             } catch (IOException e) {
                 _errorMessage.postValue(safeMessage(e));
@@ -207,6 +211,15 @@ public class FileBrowserViewModel extends ViewModel {
         _errorMessage.setValue(null);
     }
 
+    public void clearTransferProgress() {
+        _transferProgress.setValue(null);
+    }
+
+    @NonNull
+    private static String stringRes(int resId) {
+        return FileSystemManager.getInstance().requireContext().getString(resId);
+    }
+
     @NonNull
     private Set<String> currentSelection() {
         Set<String> s = _selectedPaths.getValue();
@@ -214,7 +227,8 @@ public class FileBrowserViewModel extends ViewModel {
     }
 
     @NonNull
-    private static List<String> toSegments(@NonNull String path) {
+    private static List<String> toSegments(@Nullable String path) {
+        if (path == null || path.isEmpty()) return Collections.emptyList();
         List<String> segs = new ArrayList<>();
         File f = new File(path);
         while (f != null && f.getName().length() > 0) {

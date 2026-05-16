@@ -78,4 +78,8 @@
     <string name="cd_file_icon">File icon</string>
     <string name="cd_create_fab">Create new file or folder</string>
     <string name="cd_select_checkbox">Select</string>
+
+    <!-- Intent / share -->
+    <string name="error_no_app_for_file">No app can open this file</string>
+    <string name="share_chooser_title">Share %1$s</string>
 </resources>
