@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_paste"
+        android:icon="@drawable/ic_paste"
+        android:title="@string/action_paste"
+        android:visible="false"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_refresh"
+        android:icon="@drawable/ic_refresh"
+        android:title="@string/action_refresh"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_sort"
+        android:icon="@drawable/ic_sort"
+        android:title="@string/action_sort"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/sort_name_asc"
+                android:title="@string/sort_name_asc" />
+            <item
+                android:id="@+id/sort_name_desc"
+                android:title="@string/sort_name_desc" />
+            <item
+                android:id="@+id/sort_size_asc"
+                android:title="@string/sort_size_asc" />
+            <item
+                android:id="@+id/sort_size_desc"
+                android:title="@string/sort_size_desc" />
+            <item
+                android:id="@+id/sort_date_asc"
+                android:title="@string/sort_date_asc" />
+            <item
+                android:id="@+id/sort_date_desc"
+                android:title="@string/sort_date_desc" />
+            <item
+                android:id="@+id/sort_type"
+                android:title="@string/sort_type" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/menu_show_hidden"
+        android:checkable="true"
+        android:title="@string/action_show_hidden"
+        app:showAsAction="never" />
+</menu>

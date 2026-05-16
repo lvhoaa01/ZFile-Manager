@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="item_padding_horizontal">16dp</dimen>
+    <dimen name="item_padding_vertical">12dp</dimen>
+    <dimen name="icon_size_list">40dp</dimen>
+    <dimen name="breadcrumb_height">40dp</dimen>
+    <dimen name="breadcrumb_padding_horizontal">12dp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="empty_icon_size">96dp</dimen>
+</resources>

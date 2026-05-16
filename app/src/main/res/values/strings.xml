@@ -2,4 +2,80 @@
 <resources>
     <string name="app_name">ZFile Manager</string>
     <string name="hello_world">Hello World!</string>
+
+    <!-- Permission flow -->
+    <string name="permission_title">Storage access required</string>
+    <string name="permission_explanation">ZFile Manager needs full file access to browse, copy and move files on this device.</string>
+    <string name="grant_access">Grant access</string>
+
+    <!-- Toolbar / menus -->
+    <string name="action_sort">Sort</string>
+    <string name="action_show_hidden">Show hidden files</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_paste">Paste</string>
+    <string name="action_navigate_up">Up</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_cut">Cut</string>
+    <string name="action_rename">Rename</string>
+    <string name="action_properties">Properties</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_share">Share</string>
+    <string name="action_create">Create…</string>
+
+    <!-- Sort labels -->
+    <string name="sort_name_asc">Name ↑</string>
+    <string name="sort_name_desc">Name ↓</string>
+    <string name="sort_size_asc">Size ↑</string>
+    <string name="sort_size_desc">Size ↓</string>
+    <string name="sort_date_asc">Date ↑</string>
+    <string name="sort_date_desc">Date ↓</string>
+    <string name="sort_type">Type</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_create_title">Create new</string>
+    <string name="dialog_create_hint">Name</string>
+    <string name="dialog_create_radio_file">File</string>
+    <string name="dialog_create_radio_folder">Folder</string>
+    <string name="dialog_rename_title">Rename</string>
+    <string name="dialog_properties_title">Properties</string>
+    <string name="dialog_confirm_delete_title">Delete?</string>
+    <string name="dialog_confirm_delete_message">Delete %1$d selected item(s)? This cannot be undone.</string>
+    <string name="dialog_button_cancel">Cancel</string>
+    <string name="dialog_button_ok">OK</string>
+    <string name="dialog_button_delete">Delete</string>
+    <string name="dialog_button_create">Create</string>
+    <string name="dialog_button_rename">Rename</string>
+
+    <!-- Properties labels -->
+    <string name="prop_name">Name</string>
+    <string name="prop_path">Path</string>
+    <string name="prop_type">Type</string>
+    <string name="prop_size">Size</string>
+    <string name="prop_modified">Modified</string>
+    <string name="prop_permissions">Permissions</string>
+
+    <!-- States / errors -->
+    <string name="empty_directory">This folder is empty</string>
+    <string name="empty_no_permission">No storage access</string>
+    <string name="error_invalid_name">Name cannot be empty</string>
+    <string name="error_name_exists">An item with that name already exists</string>
+    <string name="error_rename_failed">Rename failed</string>
+    <string name="error_create_failed">Could not create</string>
+    <string name="error_delete_failed">Some items could not be deleted</string>
+
+    <!-- Selection count -->
+    <string name="selected_count">%1$d selected</string>
+
+    <!-- Transfer status -->
+    <string name="transfer_copying">Copying %1$d/%2$d…</string>
+    <string name="transfer_moving">Moving %1$d/%2$d…</string>
+    <string name="transfer_completed">Done</string>
+    <string name="transfer_failed">Transfer failed: %1$s</string>
+    <string name="transfer_cancelled">Cancelled</string>
+
+    <!-- Content descriptions (accessibility) -->
+    <string name="cd_file_icon">File icon</string>
+    <string name="cd_create_fab">Create new file or folder</string>
+    <string name="cd_select_checkbox">Select</string>
 </resources>
