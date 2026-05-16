@@ -43,7 +43,12 @@ public final class MimeTypeHelper {
     public static String getMimeTypeFromName(@NonNull String filename) {
         String ext = getExtension(filename);
         if (ext == null) return null;
-        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext.toLowerCase(Locale.ROOT));
+        try {
+            return MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext.toLowerCase(Locale.ROOT));
+        } catch (RuntimeException e) {
+            // JVM unit tests stub Android framework classes and throw — degrade gracefully.
+            return null;
+        }
     }
 
     @NonNull

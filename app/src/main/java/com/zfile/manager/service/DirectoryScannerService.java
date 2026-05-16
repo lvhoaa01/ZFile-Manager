@@ -37,7 +37,10 @@ public final class DirectoryScannerService {
 
         List<FileItem> items = new ArrayList<>(children.length);
         for (File child : children) {
-            if (!showHidden && child.isHidden()) continue;
+            // Android (Linux) hides dot-prefixed files; check both the JVM hidden flag
+            // (Windows ATTRIB.HIDDEN) and the dot convention so behaviour stays the same
+            // when tests run on a Windows host.
+            if (!showHidden && (child.isHidden() || child.getName().startsWith("."))) continue;
             FileType type = MimeTypeHelper.getFileType(child);
             String mime = MimeTypeHelper.getMimeType(child);
             items.add(FileItem.fromFile(child, type, mime));

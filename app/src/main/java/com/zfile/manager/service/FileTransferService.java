@@ -12,8 +12,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -44,7 +47,30 @@ public final class FileTransferService {
                           @NonNull String destDir,
                           @Nullable ProgressCallback callback,
                           @NonNull AtomicBoolean cancelled) {
-        run(TransferProgress.Operation.MOVE, sourcePaths, destDir, callback, cancelled, true);
+        File destDirFile = new File(destDir);
+        if (!destDirFile.exists()) destDirFile.mkdirs();
+
+        // Fast path: same-filesystem move via rename. Try atomically per source;
+        // if any fails (cross-volume), undo and fall back to copy+delete.
+        List<File[]> renamed = new ArrayList<>(sourcePaths.size());
+        for (String src : sourcePaths) {
+            if (cancelled.get()) {
+                undoRenames(renamed);
+                publish(callback, TransferProgress.cancelled(TransferProgress.Operation.MOVE));
+                return;
+            }
+            File srcFile = new File(src);
+            File destFile = uniqueDestination(destDirFile, srcFile.getName());
+            if (srcFile.renameTo(destFile)) {
+                renamed.add(new File[] { srcFile, destFile });
+            } else {
+                undoRenames(renamed);
+                run(TransferProgress.Operation.MOVE, sourcePaths, destDir, callback, cancelled, true);
+                return;
+            }
+        }
+        publish(callback, TransferProgress.completed(
+                TransferProgress.Operation.MOVE, 0L, renamed.size()));
     }
 
     public boolean deleteRecursive(@NonNull String path) {
@@ -52,6 +78,7 @@ public final class FileTransferService {
     }
 
     public boolean createFolder(@NonNull String parentDir, @NonNull String name) {
+        if (!isValidFilename(name)) return false;
         File parent = new File(parentDir);
         if (!parent.isDirectory()) return false;
         File target = new File(parent, name);
@@ -60,6 +87,7 @@ public final class FileTransferService {
     }
 
     public boolean createFile(@NonNull String parentDir, @NonNull String name) throws IOException {
+        if (!isValidFilename(name)) return false;
         File parent = new File(parentDir);
         if (!parent.isDirectory()) return false;
         File target = new File(parent, name);
@@ -68,6 +96,7 @@ public final class FileTransferService {
     }
 
     public boolean rename(@NonNull String path, @NonNull String newName) {
+        if (!isValidFilename(newName)) return false;
         File src = new File(path);
         if (!src.exists()) return false;
         File parent = src.getParentFile();
@@ -75,6 +104,29 @@ public final class FileTransferService {
         File dest = new File(parent, newName);
         if (dest.exists()) return false;
         return src.renameTo(dest);
+    }
+
+    /**
+     * Rejects names that would escape the parent directory or break the filesystem:
+     * path separators, null byte, "." / "..", over 255 bytes.
+     */
+    public static boolean isValidFilename(@Nullable String name) {
+        if (name == null) return false;
+        String trimmed = name.trim();
+        if (trimmed.isEmpty()) return false;
+        if (".".equals(trimmed) || "..".equals(trimmed)) return false;
+        if (trimmed.length() > 255) return false;
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (c == '/' || c == '\\' || c == '\0') return false;
+        }
+        return true;
+    }
+
+    private static void undoRenames(@NonNull List<File[]> renamed) {
+        for (File[] pair : renamed) {
+            pair[1].renameTo(pair[0]);
+        }
     }
 
     private void run(@NonNull TransferProgress.Operation op,
@@ -96,6 +148,7 @@ public final class FileTransferService {
         long transferredBytes = 0L;
         int processedFiles = 0;
         long lastPublish = 0L;
+        Set<String> visited = new HashSet<>();
 
         try {
             for (String src : sourcePaths) {
@@ -110,7 +163,7 @@ public final class FileTransferService {
                         srcFile, destFile, op,
                         totalBytes, transferredBytes,
                         totalFiles, processedFiles,
-                        lastPublish, callback, cancelled);
+                        lastPublish, callback, cancelled, visited);
                 transferredBytes = result[0];
                 processedFiles = (int) result[1];
                 lastPublish = result[2];
@@ -135,8 +188,14 @@ public final class FileTransferService {
                                  int processedFiles,
                                  long lastPublish,
                                  @Nullable ProgressCallback callback,
-                                 @NonNull AtomicBoolean cancelled) throws IOException {
+                                 @NonNull AtomicBoolean cancelled,
+                                 @NonNull Set<String> visitedCanonical) throws IOException {
         if (src.isDirectory()) {
+            // Guard against symlink cycles (e.g. /A/link → /A) which would recurse forever.
+            String canonical = src.getCanonicalPath();
+            if (!visitedCanonical.add(canonical)) {
+                return new long[] { transferredBytes, processedFiles, lastPublish };
+            }
             if (!dest.exists() && !dest.mkdirs()) {
                 throw new IOException("Cannot create directory: " + dest.getAbsolutePath());
             }
@@ -146,7 +205,7 @@ public final class FileTransferService {
                 if (cancelled.get()) return new long[] { transferredBytes, processedFiles, lastPublish };
                 long[] r = copyRecursive(child, new File(dest, child.getName()),
                         op, totalBytes, transferredBytes, totalFiles, processedFiles,
-                        lastPublish, callback, cancelled);
+                        lastPublish, callback, cancelled, visitedCanonical);
                 transferredBytes = r[0];
                 processedFiles = (int) r[1];
                 lastPublish = r[2];
@@ -187,11 +246,19 @@ public final class FileTransferService {
     private static long[] tally(@NonNull File f) {
         long bytes = 0L;
         long count = 0L;
+        Set<String> visited = new HashSet<>();
         Deque<File> stack = new ArrayDeque<>();
         stack.push(f);
         while (!stack.isEmpty()) {
             File current = stack.pop();
             if (current.isDirectory()) {
+                String canonical;
+                try {
+                    canonical = current.getCanonicalPath();
+                } catch (IOException e) {
+                    continue;
+                }
+                if (!visited.add(canonical)) continue;
                 File[] children = current.listFiles();
                 if (children != null) {
                     for (File c : children) stack.push(c);
