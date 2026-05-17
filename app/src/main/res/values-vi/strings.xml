@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ZFile Manager</string>
+    <string name="hello_world">Xin chào!</string>
+
+    <!-- Permission flow -->
+    <string name="permission_title">Cần quyền truy cập bộ nhớ</string>
+    <string name="permission_explanation">ZFile Manager cần quyền truy cập toàn bộ tệp để duyệt, sao chép và di chuyển tệp trên thiết bị này.</string>
+    <string name="grant_access">Cấp quyền</string>
+
+    <!-- Toolbar / menus -->
+    <string name="action_sort">Sắp xếp</string>
+    <string name="action_show_hidden">Hiện tệp ẩn</string>
+    <string name="action_refresh">Làm mới</string>
+    <string name="action_paste">Dán</string>
+    <string name="action_navigate_up">Lên</string>
+    <string name="action_delete">Xoá</string>
+    <string name="action_copy">Sao chép</string>
+    <string name="action_cut">Cắt</string>
+    <string name="action_rename">Đổi tên</string>
+    <string name="action_properties">Thuộc tính</string>
+    <string name="action_select_all">Chọn tất cả</string>
+    <string name="action_share">Chia sẻ</string>
+    <string name="action_create">Tạo mới…</string>
+
+    <!-- Sort labels -->
+    <string name="sort_name_asc">Tên ↑</string>
+    <string name="sort_name_desc">Tên ↓</string>
+    <string name="sort_size_asc">Kích thước ↑</string>
+    <string name="sort_size_desc">Kích thước ↓</string>
+    <string name="sort_date_asc">Ngày ↑</string>
+    <string name="sort_date_desc">Ngày ↓</string>
+    <string name="sort_type">Loại</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_create_title">Tạo mới</string>
+    <string name="dialog_create_hint">Tên</string>
+    <string name="dialog_create_radio_file">Tệp</string>
+    <string name="dialog_create_radio_folder">Thư mục</string>
+    <string name="dialog_rename_title">Đổi tên</string>
+    <string name="dialog_properties_title">Thuộc tính</string>
+    <string name="dialog_confirm_delete_title">Xoá?</string>
+    <string name="dialog_confirm_delete_message">Xoá %1$d mục đã chọn? Hành động này không thể hoàn tác.</string>
+    <string name="dialog_button_cancel">Huỷ</string>
+    <string name="dialog_button_ok">OK</string>
+    <string name="dialog_button_delete">Xoá</string>
+    <string name="dialog_button_create">Tạo</string>
+    <string name="dialog_button_rename">Đổi tên</string>
+
+    <!-- Properties labels -->
+    <string name="prop_name">Tên</string>
+    <string name="prop_path">Đường dẫn</string>
+    <string name="prop_type">Loại</string>
+    <string name="prop_size">Kích thước</string>
+    <string name="prop_modified">Sửa đổi</string>
+    <string name="prop_permissions">Quyền</string>
+
+    <!-- States / errors -->
+    <string name="empty_directory">Thư mục trống</string>
+    <string name="empty_no_permission">Không có quyền truy cập bộ nhớ</string>
+    <string name="error_invalid_name">Tên không được để trống</string>
+    <string name="error_name_exists">Đã tồn tại mục cùng tên</string>
+    <string name="error_rename_failed">Đổi tên thất bại</string>
+    <string name="error_create_failed">Không thể tạo</string>
+    <string name="error_delete_failed">Một số tệp không thể xoá</string>
+
+    <!-- Selection count -->
+    <string name="selected_count">Đã chọn %1$d</string>
+
+    <!-- Transfer status -->
+    <string name="transfer_copying">Đang sao chép %1$d/%2$d…</string>
+    <string name="transfer_moving">Đang di chuyển %1$d/%2$d…</string>
+    <string name="transfer_completed">Hoàn tất</string>
+    <string name="transfer_failed">Truyền tệp thất bại: %1$s</string>
+    <string name="transfer_cancelled">Đã huỷ</string>
+
+    <!-- Content descriptions (accessibility) -->
+    <string name="cd_file_icon">Biểu tượng tệp</string>
+    <string name="cd_create_fab">Tạo tệp hoặc thư mục mới</string>
+    <string name="cd_select_checkbox">Chọn</string>
+
+    <!-- Intent / share -->
+    <string name="error_no_app_for_file">Không có ứng dụng nào mở được tệp này</string>
+    <string name="share_chooser_title">Chia sẻ %1$s</string>
+
+    <!-- Folder count subtitle -->
+    <plurals name="folder_item_count">
+        <item quantity="other">%d mục</item>
+    </plurals>
+    <string name="folder_empty">trống</string>
+
+    <!-- Swipe-to-delete -->
+    <string name="swipe_delete_label">Xoá</string>
+</resources>

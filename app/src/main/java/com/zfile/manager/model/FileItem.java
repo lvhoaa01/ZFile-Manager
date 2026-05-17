@@ -25,6 +25,8 @@ public final class FileItem {
     @Nullable private final String mimeType;
 
     private boolean selected;
+    /** -1 = not computed; ≥ 0 = number of children if this is a directory. */
+    private int childCount = -1;
 
     public FileItem(@NonNull String name,
                     @NonNull String path,
@@ -79,6 +81,9 @@ public final class FileItem {
 
     public boolean isSelected() { return selected; }
     public void setSelected(boolean selected) { this.selected = selected; }
+
+    public int getChildCount() { return childCount; }
+    public void setChildCount(int childCount) { this.childCount = childCount; }
 
     @Nullable
     public String getParentPath() {

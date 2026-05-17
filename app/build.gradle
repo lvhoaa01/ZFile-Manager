@@ -68,6 +68,12 @@ dependencies {
     // Storage Access Framework helpers
     implementation 'androidx.documentfile:documentfile:1.0.1'
 
+    // Image loading (thumbnails for image files in the browser)
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+
+    // Splash Screen API (API 31+ themed splash, backwards-compat to API 24)
+    implementation 'androidx.core:core-splashscreen:1.0.1'
+
     // Testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

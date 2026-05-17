@@ -147,6 +147,15 @@ public class FileBrowserViewModel extends ViewModel {
         cancelFlag.set(true);
     }
 
+    public void deleteSingle(@NonNull String path) {
+        ThreadPoolManager.getInstance().execute(() -> {
+            if (!repository.delete(path)) {
+                _errorMessage.postValue(stringRes(R.string.error_delete_failed));
+            }
+            refresh();
+        });
+    }
+
     public void deleteSelected() {
         Set<String> sel = currentSelection();
         if (sel.isEmpty()) return;

@@ -24,7 +24,15 @@
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
     </style>
 
-    <!-- Splash placeholder; Stage 2 will swap in SplashScreen API -->
-    <style name="Theme.ZFileManager.Splash" parent="Theme.ZFileManager" />
+    <!--
+        Splash theme used at app launch. AndroidX SplashScreen back-ports the
+        Android 12 splash API down to API 24; the activity must extend the
+        SplashScreen-compatible theme.
+    -->
+    <style name="Theme.ZFileManager.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/md_theme_light_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.ZFileManager</item>
+    </style>
 
 </resources>

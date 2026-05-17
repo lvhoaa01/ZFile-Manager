@@ -82,4 +82,14 @@
     <!-- Intent / share -->
     <string name="error_no_app_for_file">No app can open this file</string>
     <string name="share_chooser_title">Share %1$s</string>
+
+    <!-- Folder count subtitle -->
+    <plurals name="folder_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <string name="folder_empty">empty</string>
+
+    <!-- Swipe-to-delete -->
+    <string name="swipe_delete_label">Delete</string>
 </resources>

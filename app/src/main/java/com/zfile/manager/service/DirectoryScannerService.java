@@ -43,7 +43,13 @@ public final class DirectoryScannerService {
             if (!showHidden && (child.isHidden() || child.getName().startsWith("."))) continue;
             FileType type = MimeTypeHelper.getFileType(child);
             String mime = MimeTypeHelper.getMimeType(child);
-            items.add(FileItem.fromFile(child, type, mime));
+            FileItem item = FileItem.fromFile(child, type, mime);
+            if (child.isDirectory()) {
+                // list() returns names only (no stat per child) — cheap O(N) child count.
+                String[] grandChildren = child.list();
+                item.setChildCount(grandChildren == null ? 0 : grandChildren.length);
+            }
+            items.add(item);
         }
 
         sortInPlace(items, sort, foldersFirst);

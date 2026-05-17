@@ -15,8 +15,11 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -72,7 +75,6 @@ public class FileBrowserFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setHasOptionsMenu(true);
         viewModel = new ViewModelProvider(requireActivity()).get(FileBrowserViewModel.class);
     }
 
@@ -94,6 +96,7 @@ public class FileBrowserFragment extends Fragment {
 
         adapter = new FileListAdapter();
         recycler.setAdapter(adapter);
+        new ItemTouchHelper(swipeCallback).attachToRecyclerView(recycler);
         adapter.setOnItemClickListener(new FileListAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(@NonNull FileItemComponent item, int position) {
@@ -120,6 +123,8 @@ public class FileBrowserFragment extends Fragment {
         fab.setOnClickListener(v -> showCreateDialog());
         grantAccessButton.setOnClickListener(v ->
                 PermissionHelper.requestFullAccess(requireActivity(), REQUEST_PERMISSION));
+
+        requireActivity().addMenuProvider(menuProvider, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         observeViewModel();
         installBackHandler();
@@ -170,7 +175,7 @@ public class FileBrowserFragment extends Fragment {
                 Toolbar t = requireActivity().findViewById(R.id.toolbar);
                 if (t != null) t.setSubtitle(path);
             }
-            requireActivity().invalidateOptionsMenu();
+            requireActivity().invalidateMenu();
         });
     }
 
@@ -397,43 +402,79 @@ public class FileBrowserFragment extends Fragment {
         }
     };
 
-    @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_file_browser, menu);
-    }
+    private final ItemTouchHelper.SimpleCallback swipeCallback =
+            new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                @Override
+                public boolean onMove(@NonNull RecyclerView rv,
+                                      @NonNull RecyclerView.ViewHolder src,
+                                      @NonNull RecyclerView.ViewHolder dst) {
+                    return false;
+                }
 
-    @Override
-    public void onPrepareOptionsMenu(@NonNull Menu menu) {
-        MenuItem paste = menu.findItem(R.id.menu_paste);
-        if (paste != null) {
-            paste.setVisible(FileSystemManager.getInstance().hasClipboardContent());
-        }
-        MenuItem showHidden = menu.findItem(R.id.menu_show_hidden);
-        if (showHidden != null) {
-            showHidden.setChecked(FileSystemManager.getInstance().isShowHiddenFiles());
-        }
-    }
+                @Override
+                public int getSwipeDirs(@NonNull RecyclerView rv, @NonNull RecyclerView.ViewHolder vh) {
+                    // Disable swipe while ActionMode is active so multi-select isn't confused.
+                    return actionMode != null ? 0 : super.getSwipeDirs(rv, vh);
+                }
 
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.menu_refresh) { viewModel.refresh(); return true; }
-        if (id == R.id.menu_paste) { viewModel.pasteHere(); return true; }
-        if (id == R.id.menu_show_hidden) {
-            boolean next = !item.isChecked();
-            item.setChecked(next);
-            viewModel.setShowHidden(next);
-            return true;
+                @Override
+                public void onSwiped(@NonNull RecyclerView.ViewHolder vh, int direction) {
+                    int position = vh.getBindingAdapterPosition();
+                    if (position == RecyclerView.NO_POSITION) return;
+                    FileItemComponent item = adapter.getCurrentList().get(position);
+                    FileItem fi = item.getFileItem();
+                    androidx.appcompat.app.AlertDialog dialog = new ConfirmDialogBuilder(requireContext())
+                            .setTitle(R.string.dialog_confirm_delete_title)
+                            .setMessage(getString(R.string.dialog_confirm_delete_message, 1))
+                            .setPositiveText(R.string.dialog_button_delete)
+                            .setOnConfirm(() -> viewModel.deleteSingle(fi.getPath()))
+                            .build();
+                    // Always restore the swiped row visually; if user confirmed delete,
+                    // the subsequent refresh() will remove it cleanly.
+                    dialog.setOnDismissListener(d -> adapter.notifyItemChanged(position));
+                    dialog.show();
+                }
+            };
+
+    private final MenuProvider menuProvider = new MenuProvider() {
+        @Override
+        public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+            inflater.inflate(R.menu.menu_file_browser, menu);
         }
-        if (id == R.id.sort_name_asc) { viewModel.setSortCriteria(SortCriteria.NAME_ASC); return true; }
-        if (id == R.id.sort_name_desc) { viewModel.setSortCriteria(SortCriteria.NAME_DESC); return true; }
-        if (id == R.id.sort_size_asc) { viewModel.setSortCriteria(SortCriteria.SIZE_ASC); return true; }
-        if (id == R.id.sort_size_desc) { viewModel.setSortCriteria(SortCriteria.SIZE_DESC); return true; }
-        if (id == R.id.sort_date_asc) { viewModel.setSortCriteria(SortCriteria.DATE_ASC); return true; }
-        if (id == R.id.sort_date_desc) { viewModel.setSortCriteria(SortCriteria.DATE_DESC); return true; }
-        if (id == R.id.sort_type) { viewModel.setSortCriteria(SortCriteria.TYPE); return true; }
-        return super.onOptionsItemSelected(item);
-    }
+
+        @Override
+        public void onPrepareMenu(@NonNull Menu menu) {
+            MenuItem paste = menu.findItem(R.id.menu_paste);
+            if (paste != null) {
+                paste.setVisible(FileSystemManager.getInstance().hasClipboardContent());
+            }
+            MenuItem showHidden = menu.findItem(R.id.menu_show_hidden);
+            if (showHidden != null) {
+                showHidden.setChecked(FileSystemManager.getInstance().isShowHiddenFiles());
+            }
+        }
+
+        @Override
+        public boolean onMenuItemSelected(@NonNull MenuItem item) {
+            int id = item.getItemId();
+            if (id == R.id.menu_refresh) { viewModel.refresh(); return true; }
+            if (id == R.id.menu_paste) { viewModel.pasteHere(); return true; }
+            if (id == R.id.menu_show_hidden) {
+                boolean next = !item.isChecked();
+                item.setChecked(next);
+                viewModel.setShowHidden(next);
+                return true;
+            }
+            if (id == R.id.sort_name_asc) { viewModel.setSortCriteria(SortCriteria.NAME_ASC); return true; }
+            if (id == R.id.sort_name_desc) { viewModel.setSortCriteria(SortCriteria.NAME_DESC); return true; }
+            if (id == R.id.sort_size_asc) { viewModel.setSortCriteria(SortCriteria.SIZE_ASC); return true; }
+            if (id == R.id.sort_size_desc) { viewModel.setSortCriteria(SortCriteria.SIZE_DESC); return true; }
+            if (id == R.id.sort_date_asc) { viewModel.setSortCriteria(SortCriteria.DATE_ASC); return true; }
+            if (id == R.id.sort_date_desc) { viewModel.setSortCriteria(SortCriteria.DATE_DESC); return true; }
+            if (id == R.id.sort_type) { viewModel.setSortCriteria(SortCriteria.TYPE); return true; }
+            return false;
+        }
+    };
 
     private static final int REQUEST_PERMISSION = 1001;
 }
