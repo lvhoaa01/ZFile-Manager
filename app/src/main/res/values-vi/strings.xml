@@ -91,4 +91,26 @@
 
     <!-- Swipe-to-delete -->
     <string name="swipe_delete_label">Xoá</string>
+
+    <!-- Stage 2 — Bottom navigation -->
+    <string name="bottom_nav_browser">Duyệt</string>
+    <string name="bottom_nav_categories">Phân loại</string>
+    <string name="bottom_nav_search">Tìm kiếm</string>
+
+    <!-- Categories -->
+    <string name="category_images">Hình ảnh</string>
+    <string name="category_videos">Video</string>
+    <string name="category_audio">Âm thanh</string>
+    <string name="category_documents">Tài liệu</string>
+    <string name="category_downloads">Tải về</string>
+    <string name="category_apks">APK</string>
+    <string name="category_empty">Không có mục nào trong phân loại này</string>
+    <plurals name="category_item_count">
+        <item quantity="other">%d mục</item>
+    </plurals>
+
+    <!-- Search -->
+    <string name="search_hint">Tìm tệp theo tên…</string>
+    <string name="search_prompt">Nhập để tìm trong bộ nhớ hiện tại</string>
+    <string name="search_empty">Không tìm thấy tệp phù hợp</string>
 </resources>

@@ -92,4 +92,27 @@
 
     <!-- Swipe-to-delete -->
     <string name="swipe_delete_label">Delete</string>
+
+    <!-- Stage 2 — Bottom navigation -->
+    <string name="bottom_nav_browser">Browse</string>
+    <string name="bottom_nav_categories">Categories</string>
+    <string name="bottom_nav_search">Search</string>
+
+    <!-- Categories -->
+    <string name="category_images">Images</string>
+    <string name="category_videos">Videos</string>
+    <string name="category_audio">Audio</string>
+    <string name="category_documents">Documents</string>
+    <string name="category_downloads">Downloads</string>
+    <string name="category_apks">APKs</string>
+    <string name="category_empty">No items in this category</string>
+    <plurals name="category_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+
+    <!-- Search -->
+    <string name="search_hint">Search files by name…</string>
+    <string name="search_prompt">Type to search files in current storage</string>
+    <string name="search_empty">No files match this query</string>
 </resources>

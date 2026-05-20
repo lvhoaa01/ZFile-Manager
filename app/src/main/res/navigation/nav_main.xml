@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/fileBrowserFragment">
+
+    <fragment
+        android:id="@+id/fileBrowserFragment"
+        android:name="com.zfile.manager.ui.fragment.FileBrowserFragment"
+        android:label="@string/bottom_nav_browser"
+        tools:layout="@layout/fragment_file_browser"
+        xmlns:tools="http://schemas.android.com/tools" />
+
+    <fragment
+        android:id="@+id/categoryFragment"
+        android:name="com.zfile.manager.ui.fragment.CategoryFragment"
+        android:label="@string/bottom_nav_categories"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:layout="@layout/fragment_categories">
+        <action
+            android:id="@+id/action_categories_to_categoryDetail"
+            app:destination="@id/categoryDetailFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/categoryDetailFragment"
+        android:name="com.zfile.manager.ui.fragment.CategoryDetailFragment"
+        android:label="@string/bottom_nav_categories"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:layout="@layout/fragment_category_detail">
+        <argument
+            android:name="category"
+            app:argType="string"
+            android:defaultValue="IMAGES" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.zfile.manager.ui.fragment.SearchFragment"
+        android:label="@string/bottom_nav_search"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:layout="@layout/fragment_search" />
+</navigation>

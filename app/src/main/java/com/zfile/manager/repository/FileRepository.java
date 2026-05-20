@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import com.zfile.manager.R;
 import com.zfile.manager.core.FileSystemManager;
 import com.zfile.manager.core.MimeTypeHelper;
+import com.zfile.manager.model.CategoryType;
 import com.zfile.manager.model.FileItem;
 import com.zfile.manager.model.FileType;
 import com.zfile.manager.model.decorator.BaseFileItem;
@@ -66,6 +67,27 @@ public final class FileRepository {
                 fsm.getSortCriteria(),
                 fsm.isFoldersFirst());
         return decorate(raw);
+    }
+
+    /** Decorate raw {@link FileItem}s (e.g. results from MediaStore or search) for the UI. */
+    @NonNull
+    public List<FileItemComponent> decorateAll(@NonNull List<FileItem> raw) {
+        return decorate(raw);
+    }
+
+    /**
+     * MediaStore category listing wrapped through the same decorator chain so the
+     * Category screens can share {@code FileListAdapter}.
+     */
+    @NonNull
+    public List<FileItemComponent> loadCategory(@NonNull CategoryType type) {
+        List<FileItem> raw = com.zfile.manager.repository.MediaStoreRepository.getInstance()
+                .queryCategory(type);
+        return decorate(raw);
+    }
+
+    public int countCategory(@NonNull CategoryType type) {
+        return com.zfile.manager.repository.MediaStoreRepository.getInstance().countCategory(type);
     }
 
     @NonNull
