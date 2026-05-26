@@ -23,17 +23,22 @@ import java.util.Map;
 
 /**
  * Grid adapter for the Categories tab. Each row is a {@link MaterialCardView}
- * with a tinted icon, localised label, and item count from MediaStore.
+ * with a tinted icon, label, and item count from MediaStore.
  *
- * <p>Resources are resolved by name ({@code @drawable/ic_*}, {@code @string/category_*},
- * {@code @color/category_*}) keyed by {@link CategoryType#getResourceSuffix} so adding
- * a new category only needs an enum value plus matching resource names.</p>
+ * <p>Resources are resolved via compile-time {@link EnumMap}s rather than runtime
+ * {@code getIdentifier} lookups, so adding a new category requires a code change
+ * — which is correct, because the corresponding MediaStore branch and resource
+ * names need to be defined in lockstep anyway.</p>
  */
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryVH> {
 
     public interface OnCategoryClickListener {
         void onCategoryClick(@NonNull CategoryType type);
     }
+
+    @NonNull private static final Map<CategoryType, Integer> ICONS = buildIcons();
+    @NonNull private static final Map<CategoryType, Integer> COLORS = buildColors();
+    @NonNull private static final Map<CategoryType, Integer> LABELS = buildLabels();
 
     @NonNull private final List<CategoryType> categories =
             Arrays.asList(CategoryType.values());
@@ -85,48 +90,52 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         }
 
         void bind(@NonNull CategoryType type, int count) {
-            String suffix = type.getResourceSuffix();
-            android.content.res.Resources res = itemView.getResources();
-            String pkg = itemView.getContext().getPackageName();
-
-            int iconId = res.getIdentifier("ic_category_" + suffix, "drawable", pkg);
-            if (iconId == 0) iconId = res.getIdentifier("ic_file_" + suffix, "drawable", pkg);
-            if (iconId == 0) iconId = fallbackIcon(type);
-            icon.setImageResource(iconId);
-
-            int colorId = res.getIdentifier("category_" + suffix, "color", pkg);
-            if (colorId == 0) colorId = fallbackColorId(type);
-            int color = ContextCompat.getColor(itemView.getContext(), colorId);
+            //noinspection ConstantConditions
+            icon.setImageResource(ICONS.get(type));
+            //noinspection ConstantConditions
+            int color = ContextCompat.getColor(itemView.getContext(), COLORS.get(type));
             icon.setImageTintList(ColorStateList.valueOf(color));
 
-            int labelId = res.getIdentifier("category_" + suffix, "string", pkg);
-            label.setText(labelId != 0 ? res.getString(labelId) : suffix);
-
-            countText.setText(res.getQuantityString(R.plurals.category_item_count, count, count));
+            //noinspection ConstantConditions
+            label.setText(LABELS.get(type));
+            countText.setText(itemView.getResources()
+                    .getQuantityString(R.plurals.category_item_count, count, count));
         }
+    }
 
-        private static int fallbackIcon(@NonNull CategoryType type) {
-            switch (type) {
-                case IMAGES:    return R.drawable.ic_file_image;
-                case VIDEOS:    return R.drawable.ic_file_video;
-                case AUDIO:     return R.drawable.ic_file_audio;
-                case DOCUMENTS: return R.drawable.ic_file_document;
-                case APKS:      return R.drawable.ic_file_apk;
-                case DOWNLOADS:
-                default:        return R.drawable.ic_folder;
-            }
-        }
+    @NonNull
+    private static Map<CategoryType, Integer> buildIcons() {
+        Map<CategoryType, Integer> m = new EnumMap<>(CategoryType.class);
+        m.put(CategoryType.IMAGES,    R.drawable.ic_file_image);
+        m.put(CategoryType.VIDEOS,    R.drawable.ic_file_video);
+        m.put(CategoryType.AUDIO,     R.drawable.ic_file_audio);
+        m.put(CategoryType.DOCUMENTS, R.drawable.ic_file_document);
+        m.put(CategoryType.DOWNLOADS, R.drawable.ic_folder);
+        m.put(CategoryType.APKS,      R.drawable.ic_file_apk);
+        return m;
+    }
 
-        private static int fallbackColorId(@NonNull CategoryType type) {
-            switch (type) {
-                case IMAGES:    return R.color.category_image;
-                case VIDEOS:    return R.color.category_video;
-                case AUDIO:     return R.color.category_audio;
-                case DOCUMENTS: return R.color.category_document;
-                case APKS:      return R.color.category_apk;
-                case DOWNLOADS:
-                default:        return R.color.category_folder;
-            }
-        }
+    @NonNull
+    private static Map<CategoryType, Integer> buildColors() {
+        Map<CategoryType, Integer> m = new EnumMap<>(CategoryType.class);
+        m.put(CategoryType.IMAGES,    R.color.category_image);
+        m.put(CategoryType.VIDEOS,    R.color.category_video);
+        m.put(CategoryType.AUDIO,     R.color.category_audio);
+        m.put(CategoryType.DOCUMENTS, R.color.category_document);
+        m.put(CategoryType.DOWNLOADS, R.color.category_folder);
+        m.put(CategoryType.APKS,      R.color.category_apk);
+        return m;
+    }
+
+    @NonNull
+    private static Map<CategoryType, Integer> buildLabels() {
+        Map<CategoryType, Integer> m = new EnumMap<>(CategoryType.class);
+        m.put(CategoryType.IMAGES,    R.string.category_images);
+        m.put(CategoryType.VIDEOS,    R.string.category_videos);
+        m.put(CategoryType.AUDIO,     R.string.category_audio);
+        m.put(CategoryType.DOCUMENTS, R.string.category_documents);
+        m.put(CategoryType.DOWNLOADS, R.string.category_downloads);
+        m.put(CategoryType.APKS,      R.string.category_apks);
+        return m;
     }
 }

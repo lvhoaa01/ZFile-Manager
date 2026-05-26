@@ -38,6 +38,7 @@ import com.zfile.manager.ui.dialog.ConfirmDialogBuilder;
 import com.zfile.manager.ui.dialog.CreateFileDialogBuilder;
 import com.zfile.manager.ui.dialog.PropertiesDialogBuilder;
 import com.zfile.manager.ui.dialog.RenameDialogBuilder;
+import com.zfile.manager.ui.dialog.SortDialogBuilder;
 import com.zfile.manager.util.IntentHelper;
 import com.zfile.manager.util.PermissionHelper;
 import com.zfile.manager.viewmodel.FileBrowserViewModel;
@@ -137,6 +138,17 @@ public class FileBrowserFragment extends Fragment {
                 viewModel.loadDirectory(root);
             }
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        // ActionMode is owned by the Activity, not the fragment view — finish it
+        // explicitly or it lingers (with the file-browser menu/title) on other tabs.
+        if (actionMode != null) {
+            actionMode.finish();
+            actionMode = null;
+        }
+        super.onDestroyView();
     }
 
     @Override
@@ -465,13 +477,14 @@ public class FileBrowserFragment extends Fragment {
                 viewModel.setShowHidden(next);
                 return true;
             }
-            if (id == R.id.sort_name_asc) { viewModel.setSortCriteria(SortCriteria.NAME_ASC); return true; }
-            if (id == R.id.sort_name_desc) { viewModel.setSortCriteria(SortCriteria.NAME_DESC); return true; }
-            if (id == R.id.sort_size_asc) { viewModel.setSortCriteria(SortCriteria.SIZE_ASC); return true; }
-            if (id == R.id.sort_size_desc) { viewModel.setSortCriteria(SortCriteria.SIZE_DESC); return true; }
-            if (id == R.id.sort_date_asc) { viewModel.setSortCriteria(SortCriteria.DATE_ASC); return true; }
-            if (id == R.id.sort_date_desc) { viewModel.setSortCriteria(SortCriteria.DATE_DESC); return true; }
-            if (id == R.id.sort_type) { viewModel.setSortCriteria(SortCriteria.TYPE); return true; }
+            if (id == R.id.menu_sort) {
+                new SortDialogBuilder(requireContext())
+                        .setCurrent(FileSystemManager.getInstance().getSortCriteria())
+                        .setOnSortPicked(viewModel::setSortCriteria)
+                        .build()
+                        .show();
+                return true;
+            }
             return false;
         }
     };

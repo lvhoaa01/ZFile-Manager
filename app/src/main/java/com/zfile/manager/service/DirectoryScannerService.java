@@ -64,9 +64,9 @@ public final class DirectoryScannerService {
         return new File(path).isDirectory();
     }
 
-    private static void sortInPlace(@NonNull List<FileItem> items,
-                                    @NonNull SortCriteria sort,
-                                    boolean foldersFirst) {
+    public static void sortInPlace(@NonNull List<FileItem> items,
+                                   @NonNull SortCriteria sort,
+                                   boolean foldersFirst) {
         Comparator<FileItem> comparator = comparatorFor(sort);
         if (foldersFirst) {
             comparator = ((Comparator<FileItem>) (a, b) -> {

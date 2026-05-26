@@ -14,20 +14,29 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.zfile.manager.R;
 import com.zfile.manager.ui.adapter.CategoryAdapter;
 import com.zfile.manager.util.PermissionHelper;
 import com.zfile.manager.viewmodel.CategoryViewModel;
 
 /**
- * Categories tab — shows a 2-column grid of {@link com.zfile.manager.model.CategoryType}
+ * Categories tab — 2-column grid of {@link com.zfile.manager.model.CategoryType}
  * cards. Tapping a card navigates to {@link CategoryDetailFragment} with the
  * category name as a nav-graph argument.
+ *
+ * <p>Falls back to a permission-empty-state when the app lacks storage access,
+ * since MediaStore queries silently return 0 rows in that case which would look
+ * like "every category is empty".</p>
  */
 public class CategoryFragment extends Fragment {
 
+    private static final int REQUEST_PERMISSION = 2001;
+
     private CategoryViewModel viewModel;
     private CategoryAdapter adapter;
+    private RecyclerView grid;
+    private View permissionGroup;
 
     @Nullable
     @Override
@@ -40,7 +49,10 @@ public class CategoryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         viewModel = new ViewModelProvider(requireActivity()).get(CategoryViewModel.class);
 
-        RecyclerView grid = view.findViewById(R.id.categoryGrid);
+        grid = view.findViewById(R.id.categoryGrid);
+        permissionGroup = view.findViewById(R.id.categoryPermissionGroup);
+        MaterialButton grantButton = view.findViewById(R.id.categoryGrantAccessButton);
+
         grid.setLayoutManager(new GridLayoutManager(requireContext(), 2));
         adapter = new CategoryAdapter();
         grid.setAdapter(adapter);
@@ -51,6 +63,9 @@ public class CategoryFragment extends Fragment {
             nav.navigate(R.id.action_categories_to_categoryDetail, args);
         });
 
+        grantButton.setOnClickListener(v ->
+                PermissionHelper.requestFullAccess(requireActivity(), REQUEST_PERMISSION));
+
         viewModel.getCounts().observe(getViewLifecycleOwner(), counts -> {
             if (counts != null) adapter.setCounts(counts);
         });
@@ -59,7 +74,10 @@ public class CategoryFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (PermissionHelper.hasFullAccess(requireContext())) {
+        boolean hasAccess = PermissionHelper.hasFullAccess(requireContext());
+        permissionGroup.setVisibility(hasAccess ? View.GONE : View.VISIBLE);
+        grid.setVisibility(hasAccess ? View.VISIBLE : View.GONE);
+        if (hasAccess) {
             viewModel.refreshCounts();
         }
     }

@@ -29,6 +29,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <p>Per-task flags (not a single shared one) are necessary because resetting a
  * shared flag would also un-cancel a previously cancelled in-flight task.</p>
+ *
+ * <p>The root path defaults to {@link FileSystemManager#getCurrentRootPath()} but
+ * can be overridden via {@link #setSearchRoot} so the Search tab respects the
+ * folder the user is currently browsing.</p>
  */
 public class SearchViewModel extends ViewModel {
 
@@ -41,10 +45,15 @@ public class SearchViewModel extends ViewModel {
     private final MutableLiveData<String> _currentQuery = new MutableLiveData<>("");
 
     @NonNull private volatile AtomicBoolean currentCancel = new AtomicBoolean(false);
+    @Nullable private volatile String searchRoot;
 
     @NonNull public LiveData<List<FileItemComponent>> getResults() { return _results; }
     @NonNull public LiveData<Boolean> getIsSearching() { return _isSearching; }
     @NonNull public LiveData<String> getCurrentQuery() { return _currentQuery; }
+
+    public void setSearchRoot(@Nullable String path) {
+        this.searchRoot = path;
+    }
 
     public void submitQuery(@Nullable String query) {
         String q = query == null ? "" : query.trim();
@@ -64,21 +73,24 @@ public class SearchViewModel extends ViewModel {
         _isSearching.postValue(true);
         _results.postValue(Collections.emptyList());
 
-        String root = FileSystemManager.getInstance().getCurrentRootPath();
+        String root = searchRoot != null ? searchRoot
+                : FileSystemManager.getInstance().getCurrentRootPath();
         if (root == null) {
             _isSearching.postValue(false);
             return;
         }
         final String rootPath = root;
-        final List<FileItem> accumulator = Collections.synchronizedList(new ArrayList<>());
+        // Cumulative decorated cache so each batch only decorates new items (O(n)
+        // total instead of O(n²) across all partial-result callbacks).
+        final List<FileItemComponent> decorated = Collections.synchronizedList(new ArrayList<>());
 
         ThreadPoolManager.getInstance().submitSearch(() -> {
             service.search(rootPath, q, myCancel, new SearchService.ResultCallback() {
                 @Override
                 public void onPartialResults(@NonNull List<FileItem> batch) {
                     if (myCancel.get()) return;
-                    accumulator.addAll(batch);
-                    _results.postValue(repository.decorateAll(new ArrayList<>(accumulator)));
+                    decorated.addAll(repository.decorateAll(batch));
+                    _results.postValue(new ArrayList<>(decorated));
                 }
 
                 @Override

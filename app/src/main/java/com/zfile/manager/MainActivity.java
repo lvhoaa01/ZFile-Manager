@@ -69,12 +69,21 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         NavigationUI.setupWithNavController(bottomNav, navController);
 
-        // Breadcrumb only makes sense on the browser destination.
+        // Breadcrumb is browser-only; reset toolbar title/subtitle on every nav change
+        // so titles set by inner fragments (e.g. CategoryDetail) don't leak across screens.
         navController.addOnDestinationChangedListener((controller, destination, args) -> {
-            boolean onBrowser = destination.getId() == R.id.fileBrowserFragment;
+            int id = destination.getId();
+            boolean onBrowser = id == R.id.fileBrowserFragment;
             breadcrumbRecycler.setVisibility(onBrowser ? View.VISIBLE : View.GONE);
-            if (!onBrowser && toolbar != null) {
+            if (!onBrowser) {
                 toolbar.setSubtitle(null);
+            }
+            // CategoryDetailFragment sets its own title (the category name) — skip override.
+            if (id != R.id.categoryDetailFragment) {
+                CharSequence label = destination.getLabel();
+                toolbar.setTitle(onBrowser || label == null
+                        ? getString(R.string.app_name)
+                        : label);
             }
         });
     }

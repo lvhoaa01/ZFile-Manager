@@ -1,12 +1,15 @@
 package com.zfile.manager.ui.fragment;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,24 +24,32 @@ import com.zfile.manager.model.FileItem;
 import com.zfile.manager.model.decorator.FileItemComponent;
 import com.zfile.manager.ui.adapter.FileListAdapter;
 import com.zfile.manager.util.IntentHelper;
+import com.zfile.manager.viewmodel.FileBrowserViewModel;
 import com.zfile.manager.viewmodel.SearchViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Search tab — recursive name search rooted at the current storage volume.
- * Each keystroke {@link SearchViewModel#submitQuery} which cancels the in-flight
- * walk via the shared {@code AtomicBoolean} and queues the next on the search
- * executor (queue is drained per submission so only the latest query runs).
+ * Search tab — recursive name search rooted at the current browse path (or
+ * storage root if the browser hasn't navigated yet).
+ *
+ * <p>Keystrokes are debounced ({@value #DEBOUNCE_MS} ms) so a fast typer doesn't
+ * spin up a tree walk per character. The viewmodel is fragment-scoped — search
+ * state is intentionally not shared across tab switches.</p>
  */
 public class SearchFragment extends Fragment {
+
+    private static final long DEBOUNCE_MS = 300L;
 
     private SearchViewModel viewModel;
     private FileListAdapter adapter;
     private EditText queryInput;
     private LinearProgressIndicator progress;
-    private View emptyView;
+    private TextView emptyView;
+
+    @NonNull private final Handler debounceHandler = new Handler(Looper.getMainLooper());
+    @Nullable private Runnable pendingSearch;
 
     @Nullable
     @Override
@@ -49,7 +60,14 @@ public class SearchFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        viewModel = new ViewModelProvider(requireActivity()).get(SearchViewModel.class);
+        // Fragment-scoped: search state shouldn't outlive the tab.
+        viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+
+        // Sync the search root to whatever folder the browser is currently on so
+        // "Search" works in the user's mental context, not always from root.
+        FileBrowserViewModel browserVm =
+                new ViewModelProvider(requireActivity()).get(FileBrowserViewModel.class);
+        viewModel.setSearchRoot(browserVm.getCurrentPath().getValue());
 
         queryInput = view.findViewById(R.id.searchInput);
         progress = view.findViewById(R.id.searchProgress);
@@ -80,7 +98,7 @@ public class SearchFragment extends Fragment {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
             @Override
             public void afterTextChanged(Editable s) {
-                viewModel.submitQuery(s.toString());
+                schedule(s.toString());
             }
         });
 
@@ -90,25 +108,37 @@ public class SearchFragment extends Fragment {
         });
         viewModel.getIsSearching().observe(getViewLifecycleOwner(), searching -> {
             progress.setVisibility(Boolean.TRUE.equals(searching) ? View.VISIBLE : View.GONE);
+            // Re-evaluate empty state when the search transitions out of "searching" but
+            // no new results arrived (no-match case).
+            updateEmpty(viewModel.getResults().getValue());
         });
     }
 
     @Override
     public void onDestroyView() {
-        super.onDestroyView();
+        if (pendingSearch != null) debounceHandler.removeCallbacks(pendingSearch);
         viewModel.cancel();
+        super.onDestroyView();
+    }
+
+    private void schedule(@NonNull String query) {
+        if (pendingSearch != null) debounceHandler.removeCallbacks(pendingSearch);
+        pendingSearch = () -> viewModel.submitQuery(query);
+        debounceHandler.postDelayed(pendingSearch, DEBOUNCE_MS);
     }
 
     private void updateEmpty(@Nullable List<FileItemComponent> list) {
         String q = viewModel.getCurrentQuery().getValue();
         boolean noQuery = q == null || q.isEmpty();
         boolean noResults = list == null || list.isEmpty();
+        boolean searching = Boolean.TRUE.equals(viewModel.getIsSearching().getValue());
+
         if (noQuery) {
             emptyView.setVisibility(View.VISIBLE);
-            ((android.widget.TextView) emptyView).setText(R.string.search_prompt);
-        } else if (noResults && Boolean.FALSE.equals(viewModel.getIsSearching().getValue())) {
+            emptyView.setText(R.string.search_prompt);
+        } else if (noResults && !searching) {
             emptyView.setVisibility(View.VISIBLE);
-            ((android.widget.TextView) emptyView).setText(R.string.search_empty);
+            emptyView.setText(R.string.search_empty);
         } else {
             emptyView.setVisibility(View.GONE);
         }

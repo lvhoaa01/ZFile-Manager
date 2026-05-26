@@ -2,22 +2,29 @@ package com.zfile.manager.ui.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.zfile.manager.R;
+import com.zfile.manager.core.FileSystemManager;
 import com.zfile.manager.model.CategoryType;
 import com.zfile.manager.model.FileItem;
 import com.zfile.manager.model.decorator.FileItemComponent;
 import com.zfile.manager.ui.adapter.FileListAdapter;
+import com.zfile.manager.ui.dialog.SortDialogBuilder;
 import com.zfile.manager.util.IntentHelper;
 import com.zfile.manager.viewmodel.CategoryViewModel;
 
@@ -28,6 +35,9 @@ import java.util.List;
  * Detail screen for one category — reuses {@link FileListAdapter} to render the
  * MediaStore-sourced list and forwards taps to {@link IntentHelper#openWith} so
  * files open in the user's preferred app via the FileProvider authority.
+ *
+ * <p>Sort criterion is shared with the file browser (via {@link FileSystemManager})
+ * so users only learn one sort UI.</p>
  */
 public class CategoryDetailFragment extends Fragment {
 
@@ -90,16 +100,12 @@ public class CategoryDetailFragment extends Fragment {
         viewModel.getIsLoading().observe(getViewLifecycleOwner(),
                 loading -> swipeRefresh.setRefreshing(loading != null && loading));
 
+        requireActivity().addMenuProvider(menuProvider, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+
         if (category != null) {
             requireActivity().setTitle(localizedTitle(category));
             viewModel.loadCategory(category);
         }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        viewModel.clear();
     }
 
     private void updateEmpty(@Nullable List<FileItemComponent> list) {
@@ -124,4 +130,29 @@ public class CategoryDetailFragment extends Fragment {
             return null;
         }
     }
+
+    private final MenuProvider menuProvider = new MenuProvider() {
+        @Override
+        public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+            inflater.inflate(R.menu.menu_category_detail, menu);
+        }
+
+        @Override
+        public boolean onMenuItemSelected(@NonNull MenuItem item) {
+            int id = item.getItemId();
+            if (id == R.id.menu_sort) {
+                new SortDialogBuilder(requireContext())
+                        .setCurrent(FileSystemManager.getInstance().getSortCriteria())
+                        .setOnSortPicked(viewModel::setSortCriteria)
+                        .build()
+                        .show();
+                return true;
+            }
+            if (id == R.id.menu_refresh) {
+                if (category != null) viewModel.loadCategory(category);
+                return true;
+            }
+            return false;
+        }
+    };
 }
