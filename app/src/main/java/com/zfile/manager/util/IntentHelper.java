@@ -13,6 +13,7 @@ import com.zfile.manager.R;
 import com.zfile.manager.core.MimeTypeHelper;
 
 import java.io.File;
+import java.util.Locale;
 
 /**
  * Builds {@link Intent}s for opening / sharing files through other apps,
@@ -50,6 +51,11 @@ public final class IntentHelper {
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(Intent.createChooser(intent,
                 context.getString(R.string.share_chooser_title, file.getName())));
+    }
+
+    /** True if the file's name suggests a .zip archive — caller decides whether to extract instead of opening. */
+    public static boolean isZipFile(@NonNull File file) {
+        return file.getName().toLowerCase(Locale.ROOT).endsWith(".zip");
     }
 
     @NonNull

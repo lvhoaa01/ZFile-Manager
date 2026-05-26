@@ -1,8 +1,11 @@
 package com.zfile.manager;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private BreadcrumbAdapter breadcrumbAdapter;
     private RecyclerView breadcrumbRecycler;
     private Toolbar toolbar;
+    @Nullable private NavController navController;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         if (navHost == null) {
             throw new IllegalStateException("NavHostFragment not found in activity_main.xml");
         }
-        NavController navController = navHost.getNavController();
+        navController = navHost.getNavController();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
         NavigationUI.setupWithNavController(bottomNav, navController);
@@ -86,6 +90,33 @@ public class MainActivity extends AppCompatActivity {
                         : label);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(@NonNull Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (navController == null) return super.onOptionsItemSelected(item);
+        if (id == R.id.global_menu_trash) {
+            if (navController.getCurrentDestination() != null
+                    && navController.getCurrentDestination().getId() != R.id.trashFragment) {
+                navController.navigate(R.id.trashFragment);
+            }
+            return true;
+        }
+        if (id == R.id.global_menu_analyzer) {
+            if (navController.getCurrentDestination() != null
+                    && navController.getCurrentDestination().getId() != R.id.storageAnalyzerFragment) {
+                navController.navigate(R.id.storageAnalyzerFragment);
+            }
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void navigateToSegment(int index) {

@@ -22,6 +22,8 @@ public final class TransferProgress {
         COPY,
         MOVE,
         DELETE,
+        TRASH,
+        RESTORE,
         ZIP,
         UNZIP
     }

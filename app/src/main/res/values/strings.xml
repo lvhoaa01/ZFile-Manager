@@ -115,4 +115,44 @@
     <string name="search_hint">Search files by name…</string>
     <string name="search_prompt">Type to search files in current storage</string>
     <string name="search_empty">No files match this query</string>
+
+    <!-- Phase 3 — Recycle Bin -->
+    <string name="menu_trash">Trash</string>
+    <string name="trash_empty">Trash is empty</string>
+    <string name="trash_purge_warning_30_days">Items older than 30 days are removed automatically.</string>
+    <string name="trash_restore">Restore</string>
+    <string name="trash_restore_completed">Restored</string>
+    <string name="trash_delete_forever">Delete forever</string>
+    <string name="trash_delete_forever_title">Delete forever?</string>
+    <string name="trash_delete_forever_message">Permanently delete %1$d item(s)? This cannot be undone.</string>
+    <string name="trash_empty_all">Empty trash</string>
+    <string name="trash_empty_all_title">Empty trash?</string>
+    <string name="trash_empty_all_message">Permanently delete every item in trash? This cannot be undone.</string>
+    <string name="action_delete_forever">Delete forever</string>
+
+    <!-- Phase 3 — Storage Analyzer -->
+    <string name="menu_storage_analyzer">Storage Analyzer</string>
+    <string name="analyzer_title">Storage Analyzer</string>
+    <string name="analyzer_analyzing">Analyzing storage…</string>
+    <string name="analyzer_top_files">Largest files</string>
+    <string name="analyzer_top_folders">Largest folders</string>
+    <string name="analyzer_used_format">%1$s used of %2$s</string>
+    <string name="analyzer_free_format">%1$s free</string>
+    <string name="analyzer_category_free">Free</string>
+    <string name="analyzer_no_data">No data to display</string>
+
+    <!-- Phase 3 — Zip / Unzip -->
+    <string name="menu_compress">Compress to .zip</string>
+    <string name="menu_extract">Extract</string>
+    <string name="compress_title">Create archive</string>
+    <string name="compress_hint">Archive name</string>
+    <string name="compress_default_name">archive.zip</string>
+    <string name="extract_title">Extract archive</string>
+    <string name="extract_to">Extract to: %1$s</string>
+    <string name="extract_preview_label">Preview of contents:</string>
+    <string name="extract_preview_x_more">… and %1$d more</string>
+    <string name="dialog_button_extract">Extract</string>
+    <string name="zip_path_traversal_warning">Archive contains unsafe entries and was not extracted.</string>
+    <string name="zip_empty_warning">Archive is empty</string>
+    <string name="zip_encrypted_unsupported">Encrypted archives are not supported</string>
 </resources>

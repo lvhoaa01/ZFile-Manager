@@ -14,7 +14,9 @@ import com.zfile.manager.model.SortCriteria;
 import com.zfile.manager.model.TransferProgress;
 import com.zfile.manager.model.decorator.FileItemComponent;
 import com.zfile.manager.repository.FileRepository;
+import com.zfile.manager.service.ArchiveService;
 import com.zfile.manager.service.FileTransferService;
+import com.zfile.manager.service.RecycleBinService;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +37,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class FileBrowserViewModel extends ViewModel {
 
     @NonNull private final FileRepository repository = FileRepository.getInstance();
+    @NonNull private final RecycleBinService recycleBin = new RecycleBinService();
+    @NonNull private final ArchiveService archive = new ArchiveService();
 
     private final MutableLiveData<List<FileItemComponent>> _fileList = new MutableLiveData<>(Collections.emptyList());
     private final MutableLiveData<String> _currentPath = new MutableLiveData<>();
@@ -147,16 +151,83 @@ public class FileBrowserViewModel extends ViewModel {
         cancelFlag.set(true);
     }
 
-    public void deleteSingle(@NonNull String path) {
+    /** Compress selected paths into {@code archiveName} in the current directory. */
+    public void compressSelected(@NonNull String archiveName) {
+        Set<String> sel = currentSelection();
+        if (sel.isEmpty()) return;
+        String destDir = _currentPath.getValue();
+        if (destDir == null) return;
+        List<String> sources = new ArrayList<>(sel);
+        cancelFlag.set(false);
         ThreadPoolManager.getInstance().execute(() -> {
-            if (!repository.delete(path)) {
-                _errorMessage.postValue(stringRes(R.string.error_delete_failed));
+            File dest = uniqueDestination(new File(destDir), archiveName);
+            archive.zip(sources, dest, _transferProgress::postValue, cancelFlag);
+            refresh();
+            _selectedPaths.postValue(Collections.emptySet());
+        });
+    }
+
+    /** Extract a .zip in place — destination is a uniquely-named sibling folder. */
+    public void extract(@NonNull String archivePath) {
+        cancelFlag.set(false);
+        ThreadPoolManager.getInstance().execute(() -> {
+            File archiveFile = new File(archivePath);
+            File parent = archiveFile.getParentFile();
+            if (parent == null) {
+                _errorMessage.postValue(stringRes(R.string.error_no_app_for_file));
+                return;
             }
+            String baseName = archiveFile.getName();
+            int dot = baseName.lastIndexOf('.');
+            if (dot > 0) baseName = baseName.substring(0, dot);
+            File destDir = uniqueDestination(parent, baseName);
+            archive.unzip(archiveFile, destDir, _transferProgress::postValue, cancelFlag);
             refresh();
         });
     }
 
+    @NonNull
+    private static File uniqueDestination(@NonNull File destDir, @NonNull String name) {
+        File candidate = new File(destDir, name);
+        if (!candidate.exists()) return candidate;
+        int dot = name.lastIndexOf('.');
+        String base = dot > 0 ? name.substring(0, dot) : name;
+        String ext = dot > 0 ? name.substring(dot) : "";
+        for (int i = 2; i < 1000; i++) {
+            File c = new File(destDir, base + " (" + i + ")" + ext);
+            if (!c.exists()) return c;
+        }
+        return candidate;
+    }
+
+    /** Soft delete — moves a single file to the recycle bin. */
+    public void deleteSingle(@NonNull String path) {
+        cancelFlag.set(false);
+        List<String> singleton = Collections.singletonList(path);
+        ThreadPoolManager.getInstance().execute(() -> {
+            recycleBin.moveToTrash(singleton, _transferProgress::postValue, cancelFlag);
+            refresh();
+        });
+    }
+
+    /** Soft delete — moves selected files to the recycle bin. */
     public void deleteSelected() {
+        Set<String> sel = currentSelection();
+        if (sel.isEmpty()) return;
+        List<String> toDelete = new ArrayList<>(sel);
+        cancelFlag.set(false);
+        ThreadPoolManager.getInstance().execute(() -> {
+            recycleBin.moveToTrash(toDelete, _transferProgress::postValue, cancelFlag);
+            refresh();
+            _selectedPaths.postValue(Collections.emptySet());
+        });
+    }
+
+    /**
+     * Bypass the recycle bin — used for the "Delete forever" action in the
+     * multi-select overflow menu.
+     */
+    public void deleteSelectedPermanently() {
         Set<String> sel = currentSelection();
         if (sel.isEmpty()) return;
         List<String> toDelete = new ArrayList<>(sel);

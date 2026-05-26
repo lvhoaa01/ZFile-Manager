@@ -34,11 +34,15 @@ import com.zfile.manager.model.SortCriteria;
 import com.zfile.manager.model.TransferProgress;
 import com.zfile.manager.model.decorator.FileItemComponent;
 import com.zfile.manager.ui.adapter.FileListAdapter;
+import com.zfile.manager.model.ArchiveEntry;
+import com.zfile.manager.service.ArchiveService;
 import com.zfile.manager.ui.dialog.ConfirmDialogBuilder;
 import com.zfile.manager.ui.dialog.CreateFileDialogBuilder;
+import com.zfile.manager.ui.dialog.ExtractDialogBuilder;
 import com.zfile.manager.ui.dialog.PropertiesDialogBuilder;
 import com.zfile.manager.ui.dialog.RenameDialogBuilder;
 import com.zfile.manager.ui.dialog.SortDialogBuilder;
+import com.zfile.manager.ui.dialog.ZipDialogBuilder;
 import com.zfile.manager.util.IntentHelper;
 import com.zfile.manager.util.PermissionHelper;
 import com.zfile.manager.viewmodel.FileBrowserViewModel;
@@ -108,6 +112,8 @@ public class FileBrowserFragment extends Fragment {
                 FileItem fi = item.getFileItem();
                 if (fi.isDirectory()) {
                     viewModel.loadDirectory(fi.getPath());
+                } else if (IntentHelper.isZipFile(fi.asFile())) {
+                    showExtractDialog(fi.asFile());
                 } else {
                     IntentHelper.openWith(requireContext(), fi.asFile());
                 }
@@ -317,6 +323,53 @@ public class FileBrowserFragment extends Fragment {
                 .show();
     }
 
+    private void showZipDialog() {
+        Set<String> sel = viewModel.getSelectedPaths().getValue();
+        if (sel == null || sel.isEmpty()) return;
+        String first = sel.iterator().next();
+        String defaultName;
+        int slash = first.lastIndexOf('/');
+        defaultName = (slash >= 0 ? first.substring(slash + 1) : first) + ".zip";
+        new ZipDialogBuilder(requireContext())
+                .setDefaultName(defaultName)
+                .setOnCompress(archiveName -> {
+                    viewModel.compressSelected(archiveName);
+                    if (actionMode != null) actionMode.finish();
+                })
+                .build()
+                .show();
+    }
+
+    private void showExtractDialog(@NonNull java.io.File archive) {
+        ArchiveService svc = new ArchiveService();
+        List<ArchiveEntry> preview = svc.listEntries(archive, 10);
+        int total = svc.countEntries(archive);
+        String parent = archive.getParent();
+        String baseName = archive.getName();
+        int dot = baseName.lastIndexOf('.');
+        if (dot > 0) baseName = baseName.substring(0, dot);
+        String destDescription = (parent == null ? "" : parent + "/") + baseName + "/";
+        new ExtractDialogBuilder(requireContext())
+                .setDestPath(destDescription)
+                .setPreview(preview, total)
+                .setOnExtract(() -> viewModel.extract(archive.getAbsolutePath()))
+                .build()
+                .show();
+    }
+
+    private void confirmDeleteForever(int count) {
+        new ConfirmDialogBuilder(requireContext())
+                .setTitle(R.string.trash_delete_forever_title)
+                .setMessage(R.string.trash_delete_forever_message, count)
+                .setPositiveText(R.string.action_delete_forever)
+                .setOnConfirm(() -> {
+                    viewModel.deleteSelectedPermanently();
+                    if (actionMode != null) actionMode.finish();
+                })
+                .build()
+                .show();
+    }
+
     private void startActionMode() {
         AppCompatActivity activity = (AppCompatActivity) requireActivity();
         actionMode = activity.startSupportActionMode(actionModeCallback);
@@ -374,6 +427,14 @@ public class FileBrowserFragment extends Fragment {
             int n = sel == null ? 0 : sel.size();
             if (id == R.id.action_delete) {
                 confirmDelete(n);
+                return true;
+            }
+            if (id == R.id.action_delete_forever) {
+                confirmDeleteForever(n);
+                return true;
+            }
+            if (id == R.id.action_compress) {
+                showZipDialog();
                 return true;
             }
             if (id == R.id.action_copy) {

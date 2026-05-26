@@ -50,6 +50,27 @@ public final class MediaStoreRepository {
         return local;
     }
 
+    /** Sum of {@code SIZE} bytes for the given category. */
+    public long sumSize(@NonNull CategoryType type) {
+        Context ctx = FileSystemManager.getInstance().requireContext();
+        Uri uri = uriFor(type);
+        String[] projection = { MediaStore.MediaColumns.SIZE };
+        String selection = selectionFor(type);
+        String[] selectionArgs = selectionArgsFor(type);
+        long total = 0L;
+        try (Cursor c = ctx.getContentResolver()
+                .query(uri, projection, selection, selectionArgs, null)) {
+            if (c == null || !c.moveToFirst()) return 0L;
+            int sizeIdx = c.getColumnIndex(MediaStore.MediaColumns.SIZE);
+            if (sizeIdx < 0) return 0L;
+            do {
+                total += c.getLong(sizeIdx);
+            } while (c.moveToNext());
+        } catch (Exception ignored) {
+        }
+        return total;
+    }
+
     /** Total number of entries for the given category (cheap — no row payload fetched). */
     public int countCategory(@NonNull CategoryType type) {
         Context ctx = FileSystemManager.getInstance().requireContext();

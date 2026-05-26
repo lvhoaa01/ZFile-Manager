@@ -41,4 +41,16 @@
         android:name="com.zfile.manager.ui.fragment.SearchFragment"
         android:label="@string/bottom_nav_search"
         tools:layout="@layout/fragment_search" />
+
+    <fragment
+        android:id="@+id/trashFragment"
+        android:name="com.zfile.manager.ui.fragment.TrashFragment"
+        android:label="@string/menu_trash"
+        tools:layout="@layout/fragment_trash" />
+
+    <fragment
+        android:id="@+id/storageAnalyzerFragment"
+        android:name="com.zfile.manager.ui.fragment.StorageAnalyzerFragment"
+        android:label="@string/menu_storage_analyzer"
+        tools:layout="@layout/fragment_storage_analyzer" />
 </navigation>

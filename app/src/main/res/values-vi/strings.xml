@@ -113,4 +113,44 @@
     <string name="search_hint">Tìm tệp theo tên…</string>
     <string name="search_prompt">Nhập để tìm trong bộ nhớ hiện tại</string>
     <string name="search_empty">Không tìm thấy tệp phù hợp</string>
+
+    <!-- Phase 3 — Thùng rác -->
+    <string name="menu_trash">Thùng rác</string>
+    <string name="trash_empty">Thùng rác trống</string>
+    <string name="trash_purge_warning_30_days">Các mục cũ hơn 30 ngày sẽ tự động bị xoá.</string>
+    <string name="trash_restore">Khôi phục</string>
+    <string name="trash_restore_completed">Đã khôi phục</string>
+    <string name="trash_delete_forever">Xoá vĩnh viễn</string>
+    <string name="trash_delete_forever_title">Xoá vĩnh viễn?</string>
+    <string name="trash_delete_forever_message">Xoá vĩnh viễn %1$d mục? Không thể hoàn tác.</string>
+    <string name="trash_empty_all">Dọn thùng rác</string>
+    <string name="trash_empty_all_title">Dọn thùng rác?</string>
+    <string name="trash_empty_all_message">Xoá vĩnh viễn mọi mục trong thùng rác? Không thể hoàn tác.</string>
+    <string name="action_delete_forever">Xoá vĩnh viễn</string>
+
+    <!-- Phase 3 — Phân tích bộ nhớ -->
+    <string name="menu_storage_analyzer">Phân tích bộ nhớ</string>
+    <string name="analyzer_title">Phân tích bộ nhớ</string>
+    <string name="analyzer_analyzing">Đang phân tích…</string>
+    <string name="analyzer_top_files">Tệp lớn nhất</string>
+    <string name="analyzer_top_folders">Thư mục lớn nhất</string>
+    <string name="analyzer_used_format">Đã dùng %1$s / %2$s</string>
+    <string name="analyzer_free_format">Còn trống %1$s</string>
+    <string name="analyzer_category_free">Trống</string>
+    <string name="analyzer_no_data">Không có dữ liệu</string>
+
+    <!-- Phase 3 — Nén / Giải nén -->
+    <string name="menu_compress">Nén thành .zip</string>
+    <string name="menu_extract">Giải nén</string>
+    <string name="compress_title">Tạo archive</string>
+    <string name="compress_hint">Tên archive</string>
+    <string name="compress_default_name">archive.zip</string>
+    <string name="extract_title">Giải nén archive</string>
+    <string name="extract_to">Giải nén tới: %1$s</string>
+    <string name="extract_preview_label">Xem trước nội dung:</string>
+    <string name="extract_preview_x_more">… và %1$d mục khác</string>
+    <string name="dialog_button_extract">Giải nén</string>
+    <string name="zip_path_traversal_warning">Archive chứa entry không an toàn, đã huỷ giải nén.</string>
+    <string name="zip_empty_warning">Archive rỗng</string>
+    <string name="zip_encrypted_unsupported">Không hỗ trợ archive đã mã hoá</string>
 </resources>
