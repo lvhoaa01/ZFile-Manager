@@ -89,6 +89,8 @@ public class MainActivity extends AppCompatActivity {
                         ? getString(R.string.app_name)
                         : label);
             }
+            // Re-evaluate overflow menu visibility for the new destination.
+            invalidateOptionsMenu();
         });
     }
 
@@ -96,6 +98,20 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(@NonNull Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(@NonNull Menu menu) {
+        // Hide each item when we're already on that destination — no point
+        // navigating to a screen you're looking at.
+        int currentId = navController != null && navController.getCurrentDestination() != null
+                ? navController.getCurrentDestination().getId()
+                : 0;
+        MenuItem trash = menu.findItem(R.id.global_menu_trash);
+        if (trash != null) trash.setVisible(currentId != R.id.trashFragment);
+        MenuItem analyzer = menu.findItem(R.id.global_menu_analyzer);
+        if (analyzer != null) analyzer.setVisible(currentId != R.id.storageAnalyzerFragment);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     @Override

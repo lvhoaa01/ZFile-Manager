@@ -38,6 +38,7 @@ public class StorageAnalyzerFragment extends Fragment {
     private StoragePieChart pieChart;
     private TextView header;
     private TextView stageLabel;
+    private TextView noDataLabel;
     private ProgressBar progressBar;
     private TopFilesAdapter topFilesAdapter;
     private TopFilesAdapter topFoldersAdapter;
@@ -56,6 +57,7 @@ public class StorageAnalyzerFragment extends Fragment {
         pieChart = view.findViewById(R.id.storagePieChart);
         header = view.findViewById(R.id.analyzerHeader);
         stageLabel = view.findViewById(R.id.analyzerStage);
+        noDataLabel = view.findViewById(R.id.analyzerNoData);
         progressBar = view.findViewById(R.id.analyzerProgress);
 
         RecyclerView topFilesRecycler = view.findViewById(R.id.topFilesRecycler);
@@ -70,23 +72,29 @@ public class StorageAnalyzerFragment extends Fragment {
 
         topFilesAdapter.setOnClickListener(fi -> IntentHelper.openWith(requireContext(), fi.asFile()));
         topFoldersAdapter.setOnClickListener(fi -> {
-            // Folders surface as click targets too — but we currently don't deep-link to
-            // the browser. Show a snackbar with the path so users can navigate manually.
-            if (getView() != null) {
-                Snackbar.make(getView(), fi.getPath(), Snackbar.LENGTH_LONG).show();
-            }
+            // Deep-link into the Browser at this folder's path.
+            NavController nav = NavHostFragment.findNavController(this);
+            Bundle args = new Bundle();
+            args.putString("path", fi.getPath());
+            nav.navigate(R.id.fileBrowserFragment, args);
         });
 
         pieChart.setOnSliceClickListener(this::navigateToCategoryDetail);
 
         viewModel.getAnalysis().observe(getViewLifecycleOwner(), analysis -> {
             if (analysis == null) return;
-            pieChart.setData(analysis.getCategoryBytes(),
-                    analysis.getTotalUsed(),
-                    analysis.getTotalCapacity());
-            header.setText(getString(R.string.analyzer_used_format,
-                    FileUtils.formatSize(analysis.getTotalUsed()),
-                    FileUtils.formatSize(analysis.getTotalCapacity())));
+            boolean hasData = analysis.getTotalCapacity() > 0;
+            noDataLabel.setVisibility(hasData ? View.GONE : View.VISIBLE);
+            pieChart.setVisibility(hasData ? View.VISIBLE : View.GONE);
+            header.setVisibility(hasData ? View.VISIBLE : View.GONE);
+            if (hasData) {
+                pieChart.setData(analysis.getCategoryBytes(),
+                        analysis.getTotalUsed(),
+                        analysis.getTotalCapacity());
+                header.setText(getString(R.string.analyzer_used_format,
+                        FileUtils.formatSize(analysis.getTotalUsed()),
+                        FileUtils.formatSize(analysis.getTotalCapacity())));
+            }
             topFilesAdapter.submitList(analysis.getTopFiles());
             topFoldersAdapter.submitList(analysis.getTopFolders());
         });
@@ -95,8 +103,8 @@ public class StorageAnalyzerFragment extends Fragment {
             progressBar.setVisibility(a ? View.VISIBLE : View.GONE);
             stageLabel.setVisibility(a ? View.VISIBLE : View.GONE);
         });
-        viewModel.getStageLabel().observe(getViewLifecycleOwner(), label -> {
-            if (label != null) stageLabel.setText(label);
+        viewModel.getStage().observe(getViewLifecycleOwner(), category -> {
+            stageLabel.setText(stageLabelFor(category));
         });
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null && !msg.isEmpty() && getView() != null) {
@@ -126,5 +134,18 @@ public class StorageAnalyzerFragment extends Fragment {
         // Direct navigate by destination id — no action defined, but Navigation
         // resolves the destination from the graph directly.
         nav.navigate(R.id.categoryDetailFragment, args);
+    }
+
+    @NonNull
+    private CharSequence stageLabelFor(@Nullable CategoryType category) {
+        if (category == null) {
+            return getString(R.string.analyzer_analyzing);
+        }
+        int id = getResources().getIdentifier(
+                "category_" + category.getResourceSuffix(),
+                "string",
+                requireContext().getPackageName());
+        String localized = id != 0 ? getString(id) : category.name();
+        return getString(R.string.analyzer_analyzing_category, localized);
     }
 }

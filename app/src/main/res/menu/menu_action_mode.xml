@@ -29,7 +29,7 @@
         android:id="@+id/action_compress"
         android:icon="@drawable/ic_archive"
         android:title="@string/menu_compress"
-        app:showAsAction="never" />
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_rename"

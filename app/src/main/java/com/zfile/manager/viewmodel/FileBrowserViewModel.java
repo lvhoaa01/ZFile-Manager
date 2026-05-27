@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Observer-pattern bridge between the {@link FileRepository} and the file-browser UI.
@@ -46,12 +47,28 @@ public class FileBrowserViewModel extends ViewModel {
     private final MutableLiveData<TransferProgress> _transferProgress = new MutableLiveData<>();
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Set<String>> _selectedPaths = new MutableLiveData<>(Collections.emptySet());
+    /** One-shot event: extracted folder path. UI navigates into it then calls {@link #clearExtractedDestPath()}. */
+    private final MutableLiveData<String> _extractedDestPath = new MutableLiveData<>();
 
     /** Derived from {@link #_currentPath} so the two never drift out of sync. */
     @NonNull private final LiveData<List<String>> pathSegments =
             Transformations.map(_currentPath, FileBrowserViewModel::toSegments);
 
-    @NonNull private final AtomicBoolean cancelFlag = new AtomicBoolean(false);
+    /**
+     * Each long-running operation (paste / soft-delete / compress / extract) gets its
+     * own {@link AtomicBoolean} so cancelling a freshly-started op doesn't bleed into
+     * one already in flight. {@link #currentCancelFlag} points at the most recent flag —
+     * {@link #cancelTransfer()} only cancels that one (the operation the user actually sees).
+     */
+    @NonNull private final AtomicReference<AtomicBoolean> currentCancelFlag =
+            new AtomicReference<>(new AtomicBoolean(false));
+
+    @NonNull
+    private AtomicBoolean newCancelFlag() {
+        AtomicBoolean flag = new AtomicBoolean(false);
+        currentCancelFlag.set(flag);
+        return flag;
+    }
 
     @NonNull public LiveData<List<FileItemComponent>> getFileList() { return _fileList; }
     @NonNull public LiveData<String> getCurrentPath() { return _currentPath; }
@@ -60,6 +77,11 @@ public class FileBrowserViewModel extends ViewModel {
     @NonNull public LiveData<TransferProgress> getTransferProgress() { return _transferProgress; }
     @NonNull public LiveData<String> getErrorMessage() { return _errorMessage; }
     @NonNull public LiveData<Set<String>> getSelectedPaths() { return _selectedPaths; }
+    @NonNull public LiveData<String> getExtractedDestPath() { return _extractedDestPath; }
+
+    public void clearExtractedDestPath() {
+        _extractedDestPath.setValue(null);
+    }
 
     public void loadDirectory(@NonNull String path) {
         _isLoading.postValue(true);
@@ -131,14 +153,14 @@ public class FileBrowserViewModel extends ViewModel {
 
         List<String> sources = fsm.getClipboardPaths();
         FileSystemManager.ClipboardOperation op = fsm.getClipboardOperation();
-        cancelFlag.set(false);
+        AtomicBoolean flag = newCancelFlag();
 
         ThreadPoolManager.getInstance().execute(() -> {
             FileTransferService.ProgressCallback cb = _transferProgress::postValue;
             if (op == FileSystemManager.ClipboardOperation.CUT) {
-                repository.move(sources, destDir, cb, cancelFlag);
+                repository.move(sources, destDir, cb, flag);
             } else {
-                repository.copy(sources, destDir, cb, cancelFlag);
+                repository.copy(sources, destDir, cb, flag);
             }
             if (op == FileSystemManager.ClipboardOperation.CUT) {
                 fsm.clearClipboard();
@@ -148,7 +170,7 @@ public class FileBrowserViewModel extends ViewModel {
     }
 
     public void cancelTransfer() {
-        cancelFlag.set(true);
+        currentCancelFlag.get().set(true);
     }
 
     /** Compress selected paths into {@code archiveName} in the current directory. */
@@ -158,10 +180,10 @@ public class FileBrowserViewModel extends ViewModel {
         String destDir = _currentPath.getValue();
         if (destDir == null) return;
         List<String> sources = new ArrayList<>(sel);
-        cancelFlag.set(false);
+        AtomicBoolean flag = newCancelFlag();
         ThreadPoolManager.getInstance().execute(() -> {
             File dest = uniqueDestination(new File(destDir), archiveName);
-            archive.zip(sources, dest, _transferProgress::postValue, cancelFlag);
+            archive.zip(sources, dest, _transferProgress::postValue, flag);
             refresh();
             _selectedPaths.postValue(Collections.emptySet());
         });
@@ -169,7 +191,7 @@ public class FileBrowserViewModel extends ViewModel {
 
     /** Extract a .zip in place — destination is a uniquely-named sibling folder. */
     public void extract(@NonNull String archivePath) {
-        cancelFlag.set(false);
+        AtomicBoolean flag = newCancelFlag();
         ThreadPoolManager.getInstance().execute(() -> {
             File archiveFile = new File(archivePath);
             File parent = archiveFile.getParentFile();
@@ -181,7 +203,9 @@ public class FileBrowserViewModel extends ViewModel {
             int dot = baseName.lastIndexOf('.');
             if (dot > 0) baseName = baseName.substring(0, dot);
             File destDir = uniqueDestination(parent, baseName);
-            archive.unzip(archiveFile, destDir, _transferProgress::postValue, cancelFlag);
+            archive.unzip(archiveFile, destDir, _transferProgress::postValue, flag);
+            // Auto-navigate into the freshly-extracted folder so the user sees the result.
+            _extractedDestPath.postValue(destDir.getAbsolutePath());
             refresh();
         });
     }
@@ -202,10 +226,10 @@ public class FileBrowserViewModel extends ViewModel {
 
     /** Soft delete — moves a single file to the recycle bin. */
     public void deleteSingle(@NonNull String path) {
-        cancelFlag.set(false);
+        AtomicBoolean flag = newCancelFlag();
         List<String> singleton = Collections.singletonList(path);
         ThreadPoolManager.getInstance().execute(() -> {
-            recycleBin.moveToTrash(singleton, _transferProgress::postValue, cancelFlag);
+            recycleBin.moveToTrash(singleton, _transferProgress::postValue, flag);
             refresh();
         });
     }
@@ -215,9 +239,9 @@ public class FileBrowserViewModel extends ViewModel {
         Set<String> sel = currentSelection();
         if (sel.isEmpty()) return;
         List<String> toDelete = new ArrayList<>(sel);
-        cancelFlag.set(false);
+        AtomicBoolean flag = newCancelFlag();
         ThreadPoolManager.getInstance().execute(() -> {
-            recycleBin.moveToTrash(toDelete, _transferProgress::postValue, cancelFlag);
+            recycleBin.moveToTrash(toDelete, _transferProgress::postValue, flag);
             refresh();
             _selectedPaths.postValue(Collections.emptySet());
         });

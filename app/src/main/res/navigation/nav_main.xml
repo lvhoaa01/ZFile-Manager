@@ -9,7 +9,13 @@
         android:id="@+id/fileBrowserFragment"
         android:name="com.zfile.manager.ui.fragment.FileBrowserFragment"
         android:label="@string/bottom_nav_browser"
-        tools:layout="@layout/fragment_file_browser" />
+        tools:layout="@layout/fragment_file_browser">
+        <argument
+            android:name="path"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 
     <fragment
         android:id="@+id/categoryFragment"

@@ -134,6 +134,7 @@
     <string name="menu_storage_analyzer">Storage Analyzer</string>
     <string name="analyzer_title">Storage Analyzer</string>
     <string name="analyzer_analyzing">Analyzing storage…</string>
+    <string name="analyzer_analyzing_category">Analyzing %1$s…</string>
     <string name="analyzer_top_files">Largest files</string>
     <string name="analyzer_top_folders">Largest folders</string>
     <string name="analyzer_used_format">%1$s used of %2$s</string>

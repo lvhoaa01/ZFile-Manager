@@ -38,7 +38,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public final class StorageAnalyzerService {
 
     public interface ProgressCallback {
-        void onProgress(@NonNull String stage);
+        /**
+         * Called when the analyzer advances to a new stage.
+         *
+         * @param category non-null when scanning a specific MediaStore category;
+         *                 null while walking the filesystem for top files.
+         */
+        void onProgress(@Nullable CategoryType category);
     }
 
     private static final int TOP_N = 10;
@@ -53,7 +59,7 @@ public final class StorageAnalyzerService {
         EnumMap<CategoryType, Long> categoryBytes = new EnumMap<>(CategoryType.class);
         for (CategoryType t : CategoryType.values()) {
             if (cancelled.get()) return emptyAnalysis(volumePath);
-            if (callback != null) callback.onProgress("Analyzing " + t.name());
+            if (callback != null) callback.onProgress(t);
             categoryBytes.put(t, mediaStore.sumSize(t));
         }
 
@@ -85,7 +91,7 @@ public final class StorageAnalyzerService {
                 }
             }
 
-            if (callback != null) callback.onProgress("Scanning files");
+            if (callback != null) callback.onProgress(null);  // null → "Scanning files" stage
             walkFiles(root, topFilesPQ, cancelled);
         }
 

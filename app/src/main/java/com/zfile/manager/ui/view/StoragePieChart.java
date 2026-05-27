@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -71,11 +72,26 @@ public class StoragePieChart extends View {
 
     private void init(@NonNull Context context) {
         freeColor = ContextCompat.getColor(context, R.color.category_unknown);
-        holePaint.setColor(ContextCompat.getColor(context, android.R.color.background_light));
-        usedTextPaint.setColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+        // Theme-aware so dark mode renders correctly.
+        holePaint.setColor(resolveThemeColor(
+                context, com.google.android.material.R.attr.colorSurface, Color.WHITE));
+        int textColor = resolveThemeColor(
+                context, com.google.android.material.R.attr.colorOnSurface, Color.BLACK);
+        usedTextPaint.setColor(textColor);
         usedTextPaint.setTextAlign(Paint.Align.CENTER);
-        capTextPaint.setColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+        capTextPaint.setColor(textColor);
         capTextPaint.setTextAlign(Paint.Align.CENTER);
+    }
+
+    private static int resolveThemeColor(@NonNull Context context, int attr, int fallback) {
+        TypedValue tv = new TypedValue();
+        if (context.getTheme().resolveAttribute(attr, tv, true)) {
+            if (tv.resourceId != 0) {
+                return ContextCompat.getColor(context, tv.resourceId);
+            }
+            return tv.data;
+        }
+        return fallback;
     }
 
     public void setData(@NonNull Map<CategoryType, Long> categoryBytes,

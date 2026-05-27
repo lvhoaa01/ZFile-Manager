@@ -139,9 +139,18 @@ public class FileBrowserFragment extends Fragment {
         if (!PermissionHelper.hasFullAccess(requireContext())) {
             showPermissionEmptyState();
         } else {
-            String root = FileSystemManager.getInstance().getCurrentRootPath();
-            if (root != null && viewModel.getCurrentPath().getValue() == null) {
-                viewModel.loadDirectory(root);
+            // Optional nav argument — used by the Storage Analyzer's "top folders"
+            // entries to deep-link straight into a specific path.
+            String pathArg = getArguments() != null ? getArguments().getString("path") : null;
+            if (pathArg != null && !pathArg.isEmpty()) {
+                viewModel.loadDirectory(pathArg);
+                // Consume so a recreate doesn't re-trigger the deep link.
+                getArguments().remove("path");
+            } else {
+                String root = FileSystemManager.getInstance().getCurrentRootPath();
+                if (root != null && viewModel.getCurrentPath().getValue() == null) {
+                    viewModel.loadDirectory(root);
+                }
             }
         }
     }
@@ -188,6 +197,11 @@ public class FileBrowserFragment extends Fragment {
             }
         });
         viewModel.getTransferProgress().observe(getViewLifecycleOwner(), this::bindTransferProgress);
+        viewModel.getExtractedDestPath().observe(getViewLifecycleOwner(), destPath -> {
+            if (destPath == null || destPath.isEmpty()) return;
+            viewModel.loadDirectory(destPath);
+            viewModel.clearExtractedDestPath();
+        });
         viewModel.getCurrentPath().observe(getViewLifecycleOwner(), path -> {
             if (path != null) {
                 Toolbar t = requireActivity().findViewById(R.id.toolbar);
@@ -341,20 +355,28 @@ public class FileBrowserFragment extends Fragment {
     }
 
     private void showExtractDialog(@NonNull java.io.File archive) {
-        ArchiveService svc = new ArchiveService();
-        List<ArchiveEntry> preview = svc.listEntries(archive, 10);
-        int total = svc.countEntries(archive);
-        String parent = archive.getParent();
-        String baseName = archive.getName();
-        int dot = baseName.lastIndexOf('.');
-        if (dot > 0) baseName = baseName.substring(0, dot);
-        String destDescription = (parent == null ? "" : parent + "/") + baseName + "/";
-        new ExtractDialogBuilder(requireContext())
-                .setDestPath(destDescription)
-                .setPreview(preview, total)
-                .setOnExtract(() -> viewModel.extract(archive.getAbsolutePath()))
-                .build()
-                .show();
+        // Reading entries opens ZipFile (I/O) — never do that on the main thread.
+        // Defer to the I/O pool and surface the dialog once we have the preview.
+        com.zfile.manager.core.ThreadPoolManager.getInstance().execute(() -> {
+            ArchiveService svc = new ArchiveService();
+            List<ArchiveEntry> preview = svc.listEntries(archive, 10);
+            int total = svc.countEntries(archive);
+            if (!isAdded() || getView() == null) return;
+            getView().post(() -> {
+                if (!isAdded()) return;
+                String parent = archive.getParent();
+                String baseName = archive.getName();
+                int dot = baseName.lastIndexOf('.');
+                if (dot > 0) baseName = baseName.substring(0, dot);
+                String destDescription = (parent == null ? "" : parent + "/") + baseName + "/";
+                new ExtractDialogBuilder(requireContext())
+                        .setDestPath(destDescription)
+                        .setPreview(preview, total)
+                        .setOnExtract(() -> viewModel.extract(archive.getAbsolutePath()))
+                        .build()
+                        .show();
+            });
+        });
     }
 
     private void confirmDeleteForever(int count) {

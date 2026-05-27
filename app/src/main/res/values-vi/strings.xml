@@ -132,6 +132,7 @@
     <string name="menu_storage_analyzer">Phân tích bộ nhớ</string>
     <string name="analyzer_title">Phân tích bộ nhớ</string>
     <string name="analyzer_analyzing">Đang phân tích…</string>
+    <string name="analyzer_analyzing_category">Đang phân tích %1$s…</string>
     <string name="analyzer_top_files">Tệp lớn nhất</string>
     <string name="analyzer_top_folders">Thư mục lớn nhất</string>
     <string name="analyzer_used_format">Đã dùng %1$s / %2$s</string>

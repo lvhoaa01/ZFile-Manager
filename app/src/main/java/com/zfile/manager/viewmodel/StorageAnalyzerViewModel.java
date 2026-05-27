@@ -1,11 +1,13 @@
 package com.zfile.manager.viewmodel;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.zfile.manager.core.ThreadPoolManager;
+import com.zfile.manager.model.CategoryType;
 import com.zfile.manager.model.StorageAnalysis;
 import com.zfile.manager.repository.StorageAnalyzerRepository;
 
@@ -22,14 +24,15 @@ public class StorageAnalyzerViewModel extends ViewModel {
 
     private final MutableLiveData<StorageAnalysis> _analysis = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _isAnalyzing = new MutableLiveData<>(false);
-    private final MutableLiveData<String> _stageLabel = new MutableLiveData<>();
+    /** Null while walking the filesystem; a {@link CategoryType} while summing that category. */
+    private final MutableLiveData<CategoryType> _stage = new MutableLiveData<>();
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>();
 
     @NonNull private final AtomicBoolean cancelFlag = new AtomicBoolean(false);
 
     @NonNull public LiveData<StorageAnalysis> getAnalysis() { return _analysis; }
     @NonNull public LiveData<Boolean> getIsAnalyzing() { return _isAnalyzing; }
-    @NonNull public LiveData<String> getStageLabel() { return _stageLabel; }
+    @NonNull public LiveData<CategoryType> getStage() { return _stage; }
     @NonNull public LiveData<String> getErrorMessage() { return _errorMessage; }
 
     public void startAnalysis(@NonNull String volumePath) {
@@ -40,7 +43,7 @@ public class StorageAnalyzerViewModel extends ViewModel {
             try {
                 StorageAnalysis result = repository.analyze(
                         volumePath,
-                        stage -> _stageLabel.postValue(stage),
+                        (@Nullable CategoryType category) -> _stage.postValue(category),
                         cancelFlag);
                 _analysis.postValue(result);
             } catch (Exception e) {
