@@ -34,9 +34,6 @@ public final class FileSystemManager {
     private final List<StorageVolume> volumes = new CopyOnWriteArrayList<>();
 
     @Nullable private String currentRootPath;
-    private volatile boolean showHiddenFiles = false;
-    @NonNull private volatile SortCriteria sortCriteria = SortCriteria.NAME_ASC;
-    private volatile boolean foldersFirst = true;
 
     private final List<String> clipboardPaths = new ArrayList<>();
     @NonNull private ClipboardOperation clipboardOperation = ClipboardOperation.NONE;
@@ -131,14 +128,16 @@ public final class FileSystemManager {
         this.currentRootPath = path;
     }
 
-    public boolean isShowHiddenFiles() { return showHiddenFiles; }
-    public void setShowHiddenFiles(boolean show) { this.showHiddenFiles = show; }
+    // The three view preferences are persisted by AppSettings; delegate so they
+    // survive process death without changing any caller that reads them here.
+    public boolean isShowHiddenFiles() { return AppSettings.getInstance().isShowHidden(); }
+    public void setShowHiddenFiles(boolean show) { AppSettings.getInstance().setShowHidden(show); }
 
-    @NonNull public SortCriteria getSortCriteria() { return sortCriteria; }
-    public void setSortCriteria(@NonNull SortCriteria criteria) { this.sortCriteria = criteria; }
+    @NonNull public SortCriteria getSortCriteria() { return AppSettings.getInstance().getSortCriteria(); }
+    public void setSortCriteria(@NonNull SortCriteria criteria) { AppSettings.getInstance().setSortCriteria(criteria); }
 
-    public boolean isFoldersFirst() { return foldersFirst; }
-    public void setFoldersFirst(boolean v) { this.foldersFirst = v; }
+    public boolean isFoldersFirst() { return AppSettings.getInstance().isFoldersFirst(); }
+    public void setFoldersFirst(boolean v) { AppSettings.getInstance().setFoldersFirst(v); }
 
     /**
      * True when the app can read/write arbitrary files on external storage —

@@ -12,8 +12,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.splashscreen.SplashScreen;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -71,7 +71,11 @@ public class MainActivity extends AppCompatActivity {
         navController = navHost.getNavController();
 
         BottomNavigationView bottomNav = findViewById(R.id.bottomNav);
-        NavigationUI.setupWithNavController(bottomNav, navController);
+        // Manual wiring instead of NavigationUI.setupWithNavController: that helper
+        // navigates with saveState/restoreState, which re-attaches overflow destinations
+        // (Trash/Analyzer/Settings/Bookmarks) onto a tab's saved back stack — so returning
+        // to Browse could land back on Trash. We navigate each tab cleanly instead.
+        bottomNav.setOnItemSelectedListener(item -> navigateToTab(item.getItemId()));
 
         // Breadcrumb is browser-only; reset toolbar title/subtitle on every nav change
         // so titles set by inner fragments (e.g. CategoryDetail) don't leak across screens.
@@ -89,9 +93,37 @@ public class MainActivity extends AppCompatActivity {
                         ? getString(R.string.app_name)
                         : label);
             }
+            // Keep the bottom-nav highlight in sync (without re-triggering navigation).
+            MenuItem navItem = bottomNav.getMenu().findItem(id);
+            if (navItem != null) navItem.setChecked(true);
             // Re-evaluate overflow menu visibility for the new destination.
             invalidateOptionsMenu();
         });
+    }
+
+    /**
+     * Navigate to a bottom-nav tab, popping any overflow destinations off the stack so
+     * tabs never "remember" a Trash/Analyzer/Settings/Bookmarks screen. No saveState/
+     * restoreState — each tab resolves to a single, clean top-level destination.
+     */
+    private boolean navigateToTab(int destinationId) {
+        if (navController == null) return false;
+        if (navController.getCurrentDestination() != null
+                && navController.getCurrentDestination().getId() == destinationId) {
+            return true;
+        }
+        int startId = navController.getGraph().getStartDestinationId();
+        NavOptions options = new NavOptions.Builder()
+                .setLaunchSingleTop(true)
+                .setRestoreState(false)
+                .setPopUpTo(startId, destinationId == startId, false)
+                .build();
+        try {
+            navController.navigate(destinationId, null, options);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
     @Override
@@ -111,6 +143,10 @@ public class MainActivity extends AppCompatActivity {
         if (trash != null) trash.setVisible(currentId != R.id.trashFragment);
         MenuItem analyzer = menu.findItem(R.id.global_menu_analyzer);
         if (analyzer != null) analyzer.setVisible(currentId != R.id.storageAnalyzerFragment);
+        MenuItem bookmarks = menu.findItem(R.id.global_menu_bookmarks);
+        if (bookmarks != null) bookmarks.setVisible(currentId != R.id.bookmarksFragment);
+        MenuItem settings = menu.findItem(R.id.global_menu_settings);
+        if (settings != null) settings.setVisible(currentId != R.id.settingsFragment);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -129,6 +165,20 @@ public class MainActivity extends AppCompatActivity {
             if (navController.getCurrentDestination() != null
                     && navController.getCurrentDestination().getId() != R.id.storageAnalyzerFragment) {
                 navController.navigate(R.id.storageAnalyzerFragment);
+            }
+            return true;
+        }
+        if (id == R.id.global_menu_bookmarks) {
+            if (navController.getCurrentDestination() != null
+                    && navController.getCurrentDestination().getId() != R.id.bookmarksFragment) {
+                navController.navigate(R.id.bookmarksFragment);
+            }
+            return true;
+        }
+        if (id == R.id.global_menu_settings) {
+            if (navController.getCurrentDestination() != null
+                    && navController.getCurrentDestination().getId() != R.id.settingsFragment) {
+                navController.navigate(R.id.settingsFragment);
             }
             return true;
         }

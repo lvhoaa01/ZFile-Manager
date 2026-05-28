@@ -59,4 +59,16 @@
         android:name="com.zfile.manager.ui.fragment.StorageAnalyzerFragment"
         android:label="@string/menu_storage_analyzer"
         tools:layout="@layout/fragment_storage_analyzer" />
+
+    <fragment
+        android:id="@+id/bookmarksFragment"
+        android:name="com.zfile.manager.ui.fragment.BookmarksFragment"
+        android:label="@string/menu_bookmarks"
+        tools:layout="@layout/fragment_bookmarks" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.zfile.manager.ui.fragment.SettingsFragment"
+        android:label="@string/menu_settings"
+        tools:layout="@layout/fragment_settings" />
 </navigation>

@@ -28,7 +28,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.zfile.manager.R;
+import com.zfile.manager.core.BookmarkStore;
 import com.zfile.manager.core.FileSystemManager;
+import com.zfile.manager.model.Bookmark;
 import com.zfile.manager.model.FileItem;
 import com.zfile.manager.model.SortCriteria;
 import com.zfile.manager.model.TransferProgress;
@@ -531,6 +533,20 @@ public class FileBrowserFragment extends Fragment {
                 }
             };
 
+    private void bookmarkCurrentFolder() {
+        String path = viewModel.getCurrentPath().getValue();
+        if (path == null || path.isEmpty()) return;
+        String name = new File(path).getName();
+        if (name.isEmpty()) name = path;
+        boolean added = BookmarkStore.getInstance()
+                .add(new Bookmark(path, name, System.currentTimeMillis()));
+        if (getView() != null) {
+            Snackbar.make(getView(),
+                    added ? R.string.bookmark_added : R.string.bookmark_exists,
+                    Snackbar.LENGTH_SHORT).show();
+        }
+    }
+
     private final MenuProvider menuProvider = new MenuProvider() {
         @Override
         public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
@@ -553,6 +569,7 @@ public class FileBrowserFragment extends Fragment {
         public boolean onMenuItemSelected(@NonNull MenuItem item) {
             int id = item.getItemId();
             if (id == R.id.menu_refresh) { viewModel.refresh(); return true; }
+            if (id == R.id.action_bookmark) { bookmarkCurrentFolder(); return true; }
             if (id == R.id.menu_paste) { viewModel.pasteHere(); return true; }
             if (id == R.id.menu_show_hidden) {
                 boolean next = !item.isChecked();

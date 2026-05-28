@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.zfile.manager.core.AppSettings;
 import com.zfile.manager.core.FileSystemManager;
 import com.zfile.manager.core.ThreadPoolManager;
 import com.zfile.manager.core.TrashIndex;
@@ -248,7 +249,13 @@ public final class RecycleBinService {
         ThreadPoolManager.getInstance().scheduleAtFixedRate(
                 () -> {
                     try {
-                        purgeExpired(DEFAULT_MAX_AGE_MS);
+                        // Read the period at run time so a change in Settings takes
+                        // effect on the next daily run without rescheduling.
+                        int days = AppSettings.getInstance().getTrashPurgeDays();
+                        if (days > 0) {
+                            purgeExpired(TimeUnit.DAYS.toMillis(days));
+                        }
+                        // days <= 0 means "Never" — skip purge.
                     } catch (Exception ex) {
                         Log.w(TAG, "purgeExpired threw", ex);
                     }

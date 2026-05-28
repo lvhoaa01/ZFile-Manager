@@ -154,4 +154,29 @@
     <string name="zip_path_traversal_warning">Archive chứa entry không an toàn, đã huỷ giải nén.</string>
     <string name="zip_empty_warning">Archive rỗng</string>
     <string name="zip_encrypted_unsupported">Không hỗ trợ archive đã mã hoá</string>
+
+    <!-- Phase 4 — Cài đặt -->
+    <string name="menu_settings">Cài đặt</string>
+    <string name="settings_theme">Giao diện</string>
+    <string name="settings_theme_system">Theo hệ thống</string>
+    <string name="settings_theme_light">Sáng</string>
+    <string name="settings_theme_dark">Tối</string>
+    <string name="settings_browsing">Duyệt tệp</string>
+    <string name="settings_default_sort">Sắp xếp mặc định</string>
+    <string name="settings_folders_first">Hiện thư mục trước</string>
+    <string name="settings_show_hidden">Hiện tệp ẩn</string>
+    <string name="settings_trash">Thùng rác</string>
+    <string name="settings_trash_purge">Tự xoá sau</string>
+    <string name="settings_purge_7">7 ngày</string>
+    <string name="settings_purge_30">30 ngày</string>
+    <string name="settings_purge_90">90 ngày</string>
+    <string name="settings_purge_never">Không bao giờ</string>
+
+    <!-- Phase 4 — Dấu trang -->
+    <string name="menu_bookmarks">Dấu trang</string>
+    <string name="action_bookmark">Lưu thư mục này</string>
+    <string name="bookmark_added">Đã thêm dấu trang</string>
+    <string name="bookmark_exists">Đã có trong dấu trang</string>
+    <string name="bookmark_empty">Chưa có dấu trang nào</string>
+    <string name="bookmark_remove">Xoá dấu trang</string>
 </resources>

@@ -13,4 +13,16 @@
         android:icon="@drawable/ic_storage_analyzer"
         android:title="@string/menu_storage_analyzer"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/global_menu_bookmarks"
+        android:icon="@drawable/ic_bookmark"
+        android:title="@string/menu_bookmarks"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/global_menu_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
 </menu>
