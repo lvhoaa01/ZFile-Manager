@@ -179,4 +179,15 @@
     <string name="bookmark_exists">Đã có trong dấu trang</string>
     <string name="bookmark_empty">Chưa có dấu trang nào</string>
     <string name="bookmark_remove">Xoá dấu trang</string>
+
+    <!-- Module — Trình xem tích hợp -->
+    <string name="viewer_open_with">Mở bằng…</string>
+    <string name="viewer_file_info">Thông tin tệp</string>
+    <string name="viewer_search">Tìm kiếm</string>
+    <string name="viewer_search_hint">Tìm trong tệp…</string>
+    <string name="viewer_copy_all">Sao chép tất cả</string>
+    <string name="viewer_copied">Đã sao chép vào clipboard</string>
+    <string name="viewer_font_increase">Tăng cỡ chữ</string>
+    <string name="viewer_font_decrease">Giảm cỡ chữ</string>
+    <string name="viewer_large_file_warning">Tệp lớn — chỉ hiển thị 1 MB đầu tiên.</string>
 </resources>

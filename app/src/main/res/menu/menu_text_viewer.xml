@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/text_action_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/viewer_search"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/text_action_font_increase"
+        android:title="@string/viewer_font_increase"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/text_action_font_decrease"
+        android:title="@string/viewer_font_decrease"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/text_action_copy_all"
+        android:title="@string/viewer_copy_all"
+        app:showAsAction="never" />
+</menu>

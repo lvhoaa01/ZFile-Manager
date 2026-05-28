@@ -181,4 +181,15 @@
     <string name="bookmark_exists">Already bookmarked</string>
     <string name="bookmark_empty">No bookmarks yet</string>
     <string name="bookmark_remove">Remove bookmark</string>
+
+    <!-- Module — Integrated Viewer -->
+    <string name="viewer_open_with">Open with…</string>
+    <string name="viewer_file_info">File info</string>
+    <string name="viewer_search">Search</string>
+    <string name="viewer_search_hint">Search in file…</string>
+    <string name="viewer_copy_all">Copy all</string>
+    <string name="viewer_copied">Copied to clipboard</string>
+    <string name="viewer_font_increase">Increase font size</string>
+    <string name="viewer_font_decrease">Decrease font size</string>
+    <string name="viewer_large_file_warning">Large file — showing the first 1 MB only.</string>
 </resources>

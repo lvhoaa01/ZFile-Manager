@@ -1,5 +1,6 @@
 package com.zfile.manager.ui.fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -45,6 +46,7 @@ import com.zfile.manager.ui.dialog.PropertiesDialogBuilder;
 import com.zfile.manager.ui.dialog.RenameDialogBuilder;
 import com.zfile.manager.ui.dialog.SortDialogBuilder;
 import com.zfile.manager.ui.dialog.ZipDialogBuilder;
+import com.zfile.manager.ui.viewer.ViewerActivity;
 import com.zfile.manager.util.IntentHelper;
 import com.zfile.manager.util.PermissionHelper;
 import com.zfile.manager.viewmodel.FileBrowserViewModel;
@@ -116,6 +118,8 @@ public class FileBrowserFragment extends Fragment {
                     viewModel.loadDirectory(fi.getPath());
                 } else if (IntentHelper.isZipFile(fi.asFile())) {
                     showExtractDialog(fi.asFile());
+                } else if (ViewerActivity.isSupported(fi.asFile())) {
+                    openInViewer(fi.asFile());
                 } else {
                     IntentHelper.openWith(requireContext(), fi.asFile());
                 }
@@ -532,6 +536,23 @@ public class FileBrowserFragment extends Fragment {
                     dialog.show();
                 }
             };
+
+    /** Opens {@code file} in the in-app viewer, passing the current folder's files as siblings. */
+    private void openInViewer(@NonNull File file) {
+        ArrayList<String> siblings = new ArrayList<>();
+        List<FileItemComponent> items = viewModel.getFileList().getValue();
+        if (items != null) {
+            for (FileItemComponent c : items) {
+                if (!c.getFileItem().isDirectory()) siblings.add(c.getPath());
+            }
+        }
+        int index = siblings.indexOf(file.getAbsolutePath());
+        Intent intent = new Intent(requireContext(), ViewerActivity.class)
+                .putExtra(ViewerActivity.EXTRA_FILE_PATH, file.getAbsolutePath())
+                .putStringArrayListExtra(ViewerActivity.EXTRA_FILE_LIST, siblings)
+                .putExtra(ViewerActivity.EXTRA_CURRENT_INDEX, index);
+        startActivity(intent);
+    }
 
     private void bookmarkCurrentFolder() {
         String path = viewModel.getCurrentPath().getValue();
