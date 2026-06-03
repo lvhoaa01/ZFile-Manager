@@ -121,14 +121,19 @@ public class FileListAdapter extends ListAdapter<FileItemComponent, FileListAdap
             int iconRes = component.getIconResource();
             int tint = component.getTintColor();
 
-            if (fi.getFileType() == FileType.IMAGE && !fi.isDirectory()) {
-                // Glide loads the thumbnail; tint must be cleared so the bitmap isn't recolored.
+            boolean mediaThumb = !fi.isDirectory()
+                    && (fi.getFileType() == FileType.IMAGE || fi.getFileType() == FileType.VIDEO);
+            if (mediaThumb) {
+                // Glide loads the thumbnail (a frame, for video); tint must be cleared
+                // so the bitmap isn't recolored.
+                int fallback = fi.getFileType() == FileType.VIDEO
+                        ? R.drawable.ic_file_video : R.drawable.ic_file_image;
                 icon.setImageTintList(null);
                 Glide.with(icon.getContext())
                         .load(fi.asFile())
                         .apply(IMAGE_THUMB_OPTIONS)
-                        .placeholder(iconRes != 0 ? iconRes : R.drawable.ic_file_image)
-                        .error(R.drawable.ic_file_image)
+                        .placeholder(iconRes != 0 ? iconRes : fallback)
+                        .error(fallback)
                         .into(icon);
             } else {
                 Glide.with(icon.getContext()).clear(icon);

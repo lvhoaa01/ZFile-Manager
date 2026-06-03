@@ -192,4 +192,6 @@
     <string name="viewer_font_increase">Increase font size</string>
     <string name="viewer_font_decrease">Decrease font size</string>
     <string name="viewer_large_file_warning">Large file — showing the first 1 MB only.</string>
+    <string name="viewer_play">Play</string>
+    <string name="viewer_pause">Pause</string>
 </resources>

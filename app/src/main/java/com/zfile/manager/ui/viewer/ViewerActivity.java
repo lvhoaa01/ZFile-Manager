@@ -21,7 +21,7 @@ import java.util.Locale;
  * {@link IntentHelper#openWith}. The launching screen should only start this
  * activity when {@link #isSupported(File)} is true.
  *
- * <p>Phase A handles IMAGE and TEXT/code; VIDEO and AUDIO are added in Phase B.</p>
+ * <p>Handles IMAGE, TEXT/code, VIDEO and AUDIO.</p>
  */
 public class ViewerActivity extends AppCompatActivity {
 
@@ -58,7 +58,7 @@ public class ViewerActivity extends AppCompatActivity {
 
     /** True if a file can be previewed in-app (used by the file browser to decide routing). */
     public static boolean isSupported(@NonNull File file) {
-        return isImage(file) || isText(file);
+        return isImage(file) || isText(file) || isVideo(file) || isAudio(file);
     }
 
     public static boolean isImage(@NonNull File file) {
@@ -69,11 +69,21 @@ public class ViewerActivity extends AppCompatActivity {
         return MimeTypeHelper.getFileType(file) == FileType.TEXT;
     }
 
+    public static boolean isVideo(@NonNull File file) {
+        return MimeTypeHelper.getFileType(file) == FileType.VIDEO;
+    }
+
+    public static boolean isAudio(@NonNull File file) {
+        return MimeTypeHelper.getFileType(file) == FileType.AUDIO;
+    }
+
     @Nullable
     private static Fragment fragmentFor(@NonNull File file) {
         if (isImage(file)) return new ImageViewerFragment();
         if (isText(file)) return new TextViewerFragment();
-        return null; // VIDEO / AUDIO / unsupported → Phase B or external fallback
+        if (isVideo(file)) return new VideoViewerFragment();
+        if (isAudio(file)) return new AudioPlayerFragment();
+        return null; // unsupported → external fallback
     }
 
     @Nullable

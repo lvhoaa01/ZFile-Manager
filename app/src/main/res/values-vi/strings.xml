@@ -190,4 +190,6 @@
     <string name="viewer_font_increase">Tăng cỡ chữ</string>
     <string name="viewer_font_decrease">Giảm cỡ chữ</string>
     <string name="viewer_large_file_warning">Tệp lớn — chỉ hiển thị 1 MB đầu tiên.</string>
+    <string name="viewer_play">Phát</string>
+    <string name="viewer_pause">Tạm dừng</string>
 </resources>
