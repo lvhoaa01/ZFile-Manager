@@ -9,7 +9,6 @@
 ## Mục lục
 
 - [Tính năng](#tính-năng)
-- [Ảnh chụp màn hình](#ảnh-chụp-màn-hình)
 - [Kiến trúc tổng quan](#kiến-trúc-tổng-quan)
 - [Công nghệ & thư viện](#công-nghệ--thư-viện)
 - [Trình bày chi tiết các module](#trình-bày-chi-tiết-các-module)
