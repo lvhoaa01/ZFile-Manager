@@ -57,7 +57,7 @@ public class CategoryViewModel extends ViewModel {
             _counts.postValue(map);
         });
     }
-
+    
     public void loadCategory(@NonNull CategoryType type) {
         _currentCategory.postValue(type);
         _isLoading.postValue(true);

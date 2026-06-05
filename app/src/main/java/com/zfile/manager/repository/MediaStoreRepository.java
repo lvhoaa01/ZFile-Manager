@@ -86,14 +86,21 @@ public final class MediaStoreRepository {
         }
     }
 
-    /**
-     * Fully loads the category, newest first. The query uses {@code DATE_MODIFIED DESC}
-     * which matches Android Gallery / Files defaults.
-     */
+    // Ý tưởng là sử dụng MediaStore để truy vấn
+    //  các loại file khác nhau dựa trên MIME type
+    //  hoặc đường dẫn, tùy thuộc vào loại file.
+    //  Ví dụ, để truy vấn tài liệu, chúng ta có 
+    // thể lọc theo MIME type của các định dạng tài 
+    // liệu phổ biến. Để truy vấn các file trong thư 
+    // mục Downloads, chúng ta có thể lọc theo đường 
+    // dẫn chứa thư mục đó (đặc biệt là trên các phiên 
+    // bản Android cũ hơn). Kết quả truy vấn sẽ được ánh 
+    // xạ thành danh sách FileItem để dễ dàng hiển thị 
+    // trong giao diện người dùng.
     @NonNull
     public List<FileItem> queryCategory(@NonNull CategoryType type) {
         Context ctx = FileSystemManager.getInstance().requireContext();
-        Uri uri = uriFor(type);
+        Uri uri = uriFor(type); 
         String[] projection = {
                 MediaStore.MediaColumns._ID,
                 MediaStore.MediaColumns.DATA,
@@ -107,7 +114,7 @@ public final class MediaStoreRepository {
         String sortOrder = MediaStore.MediaColumns.DATE_MODIFIED + " DESC";
 
         ContentResolver cr = ctx.getContentResolver();
-        try (Cursor c = cr.query(uri, projection, selection, selectionArgs, sortOrder)) {
+        try (Cursor c = cr.query(uri, projection, selection, selectionArgs, sortOrder)) { 
             if (c == null || !c.moveToFirst()) return Collections.emptyList();
 
             int dataIdx = c.getColumnIndex(MediaStore.MediaColumns.DATA);
@@ -166,7 +173,7 @@ public final class MediaStoreRepository {
     }
 
     @androidx.annotation.Nullable
-    private static String selectionFor(@NonNull CategoryType type) {
+    private static String selectionFor(@NonNull CategoryType type) {// Dùng MediaStore để truy vấn các loại file khác nhau dựa trên MIME type hoặc đường dẫn, tùy thuộc vào loại file.
         switch (type) {
             case DOCUMENTS:
                 // MediaStore exposes documents only via the Files collection; filter by MIME.
@@ -188,7 +195,7 @@ public final class MediaStoreRepository {
     }
 
     @androidx.annotation.Nullable
-    private static String[] selectionArgsFor(@NonNull CategoryType type) {
+    private static String[] selectionArgsFor(@NonNull CategoryType type) { 
         switch (type) {
             case DOCUMENTS:
                 return new String[] {

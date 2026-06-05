@@ -77,7 +77,7 @@ public final class FileSystemManager {
 
     public synchronized void refreshVolumes() {
         volumes.clear();
-
+        
         File primary = Environment.getExternalStorageDirectory();
         if (primary != null && primary.exists()) {
             volumes.add(new StorageVolume(

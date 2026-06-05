@@ -22,7 +22,7 @@ public class ConfirmDialogBuilder {
     public interface OnConfirm {
         void run();
     }
-
+    
     @NonNull private final Context context;
     @Nullable private CharSequence title;
     @Nullable private CharSequence message;

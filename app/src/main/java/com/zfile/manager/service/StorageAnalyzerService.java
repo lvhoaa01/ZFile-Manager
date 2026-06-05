@@ -44,6 +44,7 @@ public final class StorageAnalyzerService {
          * @param category non-null when scanning a specific MediaStore category;
          *                 null while walking the filesystem for top files.
          */
+        // hàm này được gọi khi phân tích tiến đến một giai đoạn mới.
         void onProgress(@Nullable CategoryType category);
     }
 
@@ -55,13 +56,13 @@ public final class StorageAnalyzerService {
                                    @NonNull AtomicBoolean cancelled) {
         MediaStoreRepository mediaStore = MediaStoreRepository.getInstance();
 
-        // 1) Per-category bytes (cheap, MediaStore-backed).
+        //1 ) Byte theo từng loại (rẻ, hỗ trợ bởi MediaStore).
         EnumMap<CategoryType, Long> categoryBytes = new EnumMap<>(CategoryType.class);
         for (CategoryType t : CategoryType.values()) {
             if (cancelled.get()) return emptyAnalysis(volumePath);
             if (callback != null) callback.onProgress(t);
             categoryBytes.put(t, mediaStore.sumSize(t));
-        }
+        } 
 
         // 2) Top largest files (BFS walk, min-heap of size TOP_N).
         // Top largest root-level folders to avoid double counting with nested folders.
@@ -178,7 +179,7 @@ public final class StorageAnalyzerService {
     }
 
     private static void pushBounded(@NonNull PriorityQueue<FileItem> pq, @NonNull FileItem item) {
-        pq.offer(item);
+        pq.offer(item); // Nếu item nhỏ hơn thì nó được thêm vao
         while (pq.size() > TOP_N) pq.poll();
     }
 

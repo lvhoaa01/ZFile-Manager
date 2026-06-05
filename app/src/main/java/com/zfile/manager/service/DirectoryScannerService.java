@@ -25,12 +25,13 @@ public final class DirectoryScannerService {
                                         boolean showHidden,
                                         @NonNull SortCriteria sort,
                                         boolean foldersFirst) {
-        File dir = new File(path);
+
+        File dir = new File(path); 
         if (!dir.exists() || !dir.isDirectory() || !dir.canRead()) {
             return Collections.emptyList();
         }
 
-        File[] children = dir.listFiles();
+        File[] children = dir.listFiles(); 
         if (children == null) {
             return Collections.emptyList();
         }
@@ -42,11 +43,13 @@ public final class DirectoryScannerService {
             // when tests run on a Windows host.
             if (!showHidden && (child.isHidden() || child.getName().startsWith("."))) continue;
             FileType type = MimeTypeHelper.getFileType(child);
-            String mime = MimeTypeHelper.getMimeType(child);
+            String mime = MimeTypeHelper.getMimeType(child); 
             FileItem item = FileItem.fromFile(child, type, mime);
             if (child.isDirectory()) {
                 // list() returns names only (no stat per child) — cheap O(N) child count.
+                
                 String[] grandChildren = child.list();
+                
                 item.setChildCount(grandChildren == null ? 0 : grandChildren.length);
             }
             items.add(item);

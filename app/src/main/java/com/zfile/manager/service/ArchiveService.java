@@ -55,7 +55,7 @@ public final class ArchiveService {
         int processedFiles = 0;
         long lastPublish = 0L;
         Set<String> visited = new HashSet<>();
-
+        
         try (FileOutputStream fos = new FileOutputStream(dest);
              BufferedOutputStream bos = new BufferedOutputStream(fos);
              ZipOutputStream zos = new ZipOutputStream(bos)) {
@@ -86,6 +86,12 @@ public final class ArchiveService {
         }
     }
 
+
+
+
+
+    // Ý tưởng là đọc từng entry, giải nén vào file đích, 
+    // cập nhật tiến độ sau mỗi chunk.
     public void unzip(@NonNull File archive,
                       @NonNull File destDir,
                       @Nullable FileTransferService.ProgressCallback callback,
@@ -113,7 +119,7 @@ public final class ArchiveService {
         long transferredBytes = 0L;
         int processedFiles = 0;
         long lastPublish = 0L;
-
+        
         try (FileInputStream fis = new FileInputStream(archive);
              BufferedInputStream bis = new BufferedInputStream(fis);
              ZipInputStream zis = new ZipInputStream(bis)) {
@@ -126,7 +132,6 @@ public final class ArchiveService {
                 }
                 File outFile = new File(destDir, entry.getName());
 
-                // Zip-slip guard — reject entries that escape the destination root.
                 String outCanonical = outFile.getCanonicalPath();
                 if (!outCanonical.startsWith(destCanonical)
                         && !outCanonical.equals(destDir.getCanonicalPath())) {
@@ -142,6 +147,7 @@ public final class ArchiveService {
                     if (parent != null && !parent.exists() && !parent.mkdirs()) {
                         throw new IOException("Cannot create parent: " + parent);
                     }
+                    
                     try (FileOutputStream fos = new FileOutputStream(outFile);
                          BufferedOutputStream bos = new BufferedOutputStream(fos)) {
                         int n;
@@ -150,7 +156,7 @@ public final class ArchiveService {
                                 publish(callback, TransferProgress.cancelled(TransferProgress.Operation.UNZIP));
                                 return;
                             }
-                            bos.write(buf, 0, n);
+                            bos.write(buf, 0, n); 
                             transferredBytes += n;
                             long now = System.currentTimeMillis();
                             if (now - lastPublish >= PROGRESS_INTERVAL_MS) {
@@ -205,6 +211,15 @@ public final class ArchiveService {
             return 0;
         }
     }
+    // ý tưởng là đệ quy qua cây thư mục, 
+    // nếu là thư mục thì tạo entry rỗng,
+    //  nếu là file thì nén và cập nhật tiến độ. 
+    // visitedCanonical để tránh vòng symlink.
+    //  publish() để gửi tiến độ lên callback. 
+    // tallyAll() để tính tổng bytes và files
+    //  trước khi bắt đầu. cleanupPartial() để 
+    // xóa file đích nếu có lỗi xảy ra. safeMessage()
+    //  để lấy thông điệp lỗi an toàn từ Throwable.
 
     private long[] zipRecursive(@NonNull File src,
                                 @NonNull ZipOutputStream zos,

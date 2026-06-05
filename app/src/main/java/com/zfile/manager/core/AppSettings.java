@@ -60,10 +60,11 @@ public final class AppSettings {
         }
         return local;
     }
-
+    
     public synchronized void load(@NonNull Context context) {
         this.appContext = context.getApplicationContext();
         SharedPreferences p = prefs();
+        
         themeMode = p.getInt(KEY_THEME_MODE, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         trashPurgeDays = p.getInt(KEY_TRASH_PURGE_DAYS, DEFAULT_TRASH_PURGE_DAYS);
         showHidden = p.getBoolean(KEY_SHOW_HIDDEN, false);
@@ -81,8 +82,9 @@ public final class AppSettings {
     public int getTrashPurgeDays() { return trashPurgeDays; }
 
     public void setTrashPurgeDays(int days) {
-        trashPurgeDays = days;
+        trashPurgeDays = days; 
         prefs().edit().putInt(KEY_TRASH_PURGE_DAYS, days).apply();
+
     }
 
     public boolean isShowHidden() { return showHidden; }
@@ -122,6 +124,7 @@ public final class AppSettings {
         if (appContext == null) {
             throw new IllegalStateException("AppSettings.load(Context) must be called first");
         }
+        
         return appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
 }

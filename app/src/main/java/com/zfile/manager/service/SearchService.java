@@ -19,19 +19,13 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Synchronous recursive file-name search. Run from a background thread —
- * callers should use {@link com.zfile.manager.core.ThreadPoolManager#submitSearch}
- * so a newer query supersedes an in-flight older one.
- *
- * <p>Matching is case-insensitive substring on the file name. Symlink cycles
- * are blocked via a visited-canonical-paths set; results are emitted in
- * batches to {@link ResultCallback#onPartialResults} so the UI can paint
- * before the entire tree is walked.</p>
- */
+
 public final class SearchService {
 
     public interface ResultCallback {
+        // onPartialResults có nghĩa là trả về kết 
+        // quả tạm thời để UI có thể hiển thị 
+        // trước khi toàn bộ cây thư mục được duyệt xong
         void onPartialResults(@NonNull List<FileItem> batch);
         void onFinished(int totalMatches);
     }
@@ -54,7 +48,11 @@ public final class SearchService {
             if (callback != null) callback.onFinished(0);
             return Collections.emptyList();
         }
-
+        // mathes nghĩa là kết quả tìm kiếm,
+        //  pendingBatch là kết quả tạm thời để gửi v
+        // ề UI khi đủ batch size, visited để tránh 
+        // vòng lặp symlink, queue để duyệt cây thư mục 
+        // theo chiều rộng
         List<FileItem> matches = new ArrayList<>();
         List<FileItem> pendingBatch = new ArrayList<>(BATCH_SIZE);
         Set<String> visited = new HashSet<>();

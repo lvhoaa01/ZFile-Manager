@@ -330,6 +330,8 @@ public class FileBrowserViewModel extends ViewModel {
         return s == null ? Collections.emptySet() : s;
     }
 
+
+    
     @NonNull
     private static List<String> toSegments(@Nullable String path) {
         if (path == null || path.isEmpty()) return Collections.emptyList();

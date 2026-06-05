@@ -37,7 +37,7 @@ public final class MimeTypeHelper {
     public static String getMimeType(@NonNull File file) {
         if (file.isDirectory()) return null;
         return getMimeTypeFromName(file.getName());
-    }
+    } 
 
     @Nullable
     public static String getMimeTypeFromName(@NonNull String filename) {

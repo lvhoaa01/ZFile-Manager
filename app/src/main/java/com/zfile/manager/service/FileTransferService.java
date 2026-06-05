@@ -50,9 +50,8 @@ public final class FileTransferService {
         File destDirFile = new File(destDir);
         if (!destDirFile.exists()) destDirFile.mkdirs();
 
-        // Fast path: same-filesystem move via rename. Try atomically per source;
-        // if any fails (cross-volume), undo and fall back to copy+delete.
-        List<File[]> renamed = new ArrayList<>(sourcePaths.size());
+        
+        List<File[]> renamed = new ArrayList<>(sourcePaths.size()); 
         for (String src : sourcePaths) {
             if (cancelled.get()) {
                 undoRenames(renamed);
@@ -63,7 +62,7 @@ public final class FileTransferService {
             File destFile = uniqueDestination(destDirFile, srcFile.getName());
             if (srcFile.renameTo(destFile)) {
                 renamed.add(new File[] { srcFile, destFile });
-            } else {
+            } else {//khác ổ thì dùng truyền thống
                 undoRenames(renamed);
                 run(TransferProgress.Operation.MOVE, sourcePaths, destDir, callback, cancelled, true);
                 return;
@@ -94,7 +93,7 @@ public final class FileTransferService {
         if (target.exists()) return false;
         return target.createNewFile();
     }
-
+    // tên đúng quy định, path not root, k trùng
     public boolean rename(@NonNull String path, @NonNull String newName) {
         if (!isValidFilename(newName)) return false;
         File src = new File(path);
@@ -106,13 +105,10 @@ public final class FileTransferService {
         return src.renameTo(dest);
     }
 
-    /**
-     * Rejects names that would escape the parent directory or break the filesystem:
-     * path separators, null byte, "." / "..", over 255 bytes.
-     */
+    // kiểm tra tên file(ko null,...)
     public static boolean isValidFilename(@Nullable String name) {
         if (name == null) return false;
-        String trimmed = name.trim();
+        String trimmed = name.trim(); 
         if (trimmed.isEmpty()) return false;
         if (".".equals(trimmed) || "..".equals(trimmed)) return false;
         if (trimmed.length() > 255) return false;
@@ -128,7 +124,10 @@ public final class FileTransferService {
             pair[1].renameTo(pair[0]);
         }
     }
-
+    // Ý tưởng là đệ quy qua cây thư mục, copy file-by-file,
+    // và sau mỗi file (hoặc mỗi vài file)
+    // thì publish tiến trình. Để tránh vòng
+    //  lặp vô hạn do symlink, track tập hợp canonical
     private void run(@NonNull TransferProgress.Operation op,
                      @NonNull List<String> sourcePaths,
                      @NonNull String destDir,
@@ -137,19 +136,20 @@ public final class FileTransferService {
                      boolean deleteSourceAfterCopy) {
         long totalBytes = 0L;
         int totalFiles = 0;
+        //tính tổng file/by
         for (String s : sourcePaths) {
             long[] tally = tally(new File(s));
             totalBytes += tally[0];
             totalFiles += (int) tally[1];
-        }
-
+        } 
+        // đẩy lên UI progress
         publish(callback, TransferProgress.pending(op, totalBytes, totalFiles));
 
         long transferredBytes = 0L;
         int processedFiles = 0;
         long lastPublish = 0L;
         Set<String> visited = new HashSet<>();
-
+        // 
         try {
             for (String src : sourcePaths) {
                 if (cancelled.get()) {
@@ -157,8 +157,9 @@ public final class FileTransferService {
                     return;
                 }
                 File srcFile = new File(src);
+                // tạo (2) 
                 File destFile = uniqueDestination(new File(destDir), srcFile.getName());
-
+                // copy
                 long[] result = copyRecursive(
                         srcFile, destFile, op,
                         totalBytes, transferredBytes,
@@ -167,18 +168,23 @@ public final class FileTransferService {
                 transferredBytes = result[0];
                 processedFiles = (int) result[1];
                 lastPublish = result[2];
-
+                // phân biệt move/copy
                 if (deleteSourceAfterCopy && !cancelled.get()) {
                     deleteRecursive(srcFile);
                 }
             }
+            // xong 1 cái thì đẩy
             publish(callback, TransferProgress.completed(op, totalBytes, totalFiles));
         } catch (IOException e) {
             publish(callback, TransferProgress.failed(op, totalBytes, transferredBytes,
                     e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
         }
     }
-
+    // Ý tưởng là đệ quy qua cây thư mục, copy file-by-file, 
+    // và sau mỗi file (hoặc mỗi vài file) 
+    // thì publish tiến trình. Để tránh vòng
+    //  lặp vô hạn do symlink, track tập hợp canonical
+    //  path đã thăm.
     private long[] copyRecursive(@NonNull File src,
                                  @NonNull File dest,
                                  @NonNull TransferProgress.Operation op,
@@ -219,6 +225,8 @@ public final class FileTransferService {
         }
 
         byte[] buf = new byte[BUFFER_SIZE];
+        // copy file by file
+        
         try (InputStream in = new FileInputStream(src);
              OutputStream out = new FileOutputStream(dest)) {
             int n;
@@ -226,7 +234,7 @@ public final class FileTransferService {
                 if (cancelled.get()) {
                     return new long[] { transferredBytes, processedFiles, lastPublish };
                 }
-                out.write(buf, 0, n);
+                out.write(buf, 0, n); 
                 transferredBytes += n;
 
                 long now = System.currentTimeMillis();
@@ -270,7 +278,7 @@ public final class FileTransferService {
         }
         return new long[] { bytes, count };
     }
-
+    // xóa vv
     private static boolean deleteRecursive(@NonNull File f) {
         if (f.isDirectory()) {
             File[] children = f.listFiles();
@@ -279,7 +287,7 @@ public final class FileTransferService {
                     if (!deleteRecursive(c)) return false;
                 }
             }
-        }
+        } 
         return f.delete();
     }
 
