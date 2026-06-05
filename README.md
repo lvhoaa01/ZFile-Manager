@@ -3,6 +3,7 @@
 
 > Ứng dụng **quản lý file trên Android**, viết bằng **Java thuần**, theo kiến trúc **MVVM 5 tầng**. Hỗ trợ duyệt thư mục, sao chép/di chuyển, thùng rác (xoá mềm), nén/giải nén ZIP, tìm kiếm đệ quy, xem ảnh/video/nhạc/text ngay trong app, phân tích dung lượng bộ nhớ và đổi giao diện sáng/tối.
 
+> Link video : https://drive.google.com/drive/folders/1Jb_fXh8xkjwvSY_2OFjR6GsOG4-y3mrX?usp=drive_link
 
 ---
 
@@ -371,8 +372,6 @@ app/src/main/java/com/zfile/manager/
 ---
 
 
-> Lần đầu chạy, ứng dụng sẽ xin **quyền truy cập toàn bộ bộ nhớ** (Android 11+: chuyển tới màn "All files access"). Cần cấp quyền này để duyệt file.
 
 ---
 
-> Link : https://drive.google.com/drive/folders/1Jb_fXh8xkjwvSY_2OFjR6GsOG4-y3mrX?usp=drive_link
